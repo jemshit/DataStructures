@@ -1,7 +1,8 @@
 private const val startCapacity = 8
 
 class DynamicArray<T> {
-    private var size: Int = 0
+    var size: Int = 0
+        private set
     private var capacity: Int
     private var array: Array<T?>
 
