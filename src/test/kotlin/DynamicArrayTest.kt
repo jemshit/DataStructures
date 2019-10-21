@@ -19,7 +19,7 @@ internal class DynamicArrayTest {
 
     @Test
     fun `test removing from empty list`() {
-        assertThrows<IndexOutOfBoundsException> {
+        assertThrows<Exception> {
             dynamicIntArray.removeAt(0)
         }
     }
@@ -29,7 +29,7 @@ internal class DynamicArrayTest {
         dynamicIntArray.add(1)
         dynamicIntArray.add(2)
         dynamicIntArray.add(3)
-        assertThrows<IndexOutOfBoundsException> {
+        assertThrows<Exception> {
             dynamicIntArray.removeAt(3)
         }
     }
@@ -38,7 +38,7 @@ internal class DynamicArrayTest {
     fun `test removing from outOfBoundException2`() {
         for (i in 0..999)
             dynamicIntArray.add(789)
-        assertThrows<IndexOutOfBoundsException> {
+        assertThrows<Exception> {
             dynamicIntArray.removeAt(1000)
         }
     }
@@ -47,7 +47,7 @@ internal class DynamicArrayTest {
     fun `test removing from outOfBoundException3`() {
         for (i in 0..999)
             dynamicIntArray.add(789)
-        assertThrows<IndexOutOfBoundsException> {
+        assertThrows<Exception> {
             dynamicIntArray.removeAt(-1)
         }
     }
@@ -56,7 +56,7 @@ internal class DynamicArrayTest {
     fun `test removing from outOfBoundException4`() {
         for (i in 0..15)
             dynamicIntArray.add(1)
-        assertThrows<IndexOutOfBoundsException> {
+        assertThrows<Exception> {
             dynamicIntArray.removeAt(-66)
         }
     }

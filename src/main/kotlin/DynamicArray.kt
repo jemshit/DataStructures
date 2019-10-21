@@ -1,6 +1,6 @@
 private const val startCapacity = 8
 
-class DynamicArray<T : Any> {
+class DynamicArray<T : Any> : Iterable<T> {
     var size: Int = 0
         private set
     private var capacity: Int
@@ -107,7 +107,7 @@ class DynamicArray<T : Any> {
         return previousItem
     }
 
-    /*fun iterator(): ListIterator<T> {
+    override operator fun iterator(): ListIterator<T> {
         return object : ListIterator<T> {
             var index = 0
 
@@ -115,13 +115,13 @@ class DynamicArray<T : Any> {
 
             override fun hasPrevious(): Boolean = index > 0
 
-            override fun next(): T = array[index]!!
+            override fun next(): T = array[index]
 
             override fun nextIndex(): Int = index + 1
 
-            override fun previous(): T = array[index - 1]!!
+            override fun previous(): T = array[index - 1]
 
             override fun previousIndex(): Int = index - 11
         }
-    }*/
+    }
 }

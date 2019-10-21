@@ -1,16 +1,20 @@
-class SinglyLinkedList<T : Any> {
+class SinglyLinkedList<T : Any> : Iterable<T> {
 
     class Node<T : Any> {
         val data: T
         var next: Node<T>? = null
 
-        constructor(data: T, next: Node<T>? = null) {
+        constructor(
+            data: T,
+            next: Node<T>? = null
+        ) {
             this.data = data
             this.next = next
         }
     }
 
     var size: Int = 0
+        private set
     private var head: Node<T>? = null
     private var tail: Node<T>? = null
 
@@ -204,5 +208,22 @@ class SinglyLinkedList<T : Any> {
         size -= 1
         return true
     }
+
+    override operator fun iterator(): Iterator<T> {
+        return object : Iterator<T> {
+            private var traverser: Node<T>? = head
+
+            override fun hasNext(): Boolean {
+                return traverser != null
+            }
+
+            override fun next(): T {
+                val data = traverser!!.data
+                traverser = traverser!!.next
+                return data
+            }
+        }
+    }
+
 }
 
