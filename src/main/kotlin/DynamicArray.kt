@@ -1,14 +1,17 @@
 private const val startCapacity = 8
 
-class DynamicArray<T> {
+class DynamicArray<T : Any> {
     var size: Int = 0
         private set
     private var capacity: Int
-    private var array: Array<T?>
+    private var array: Array<T>
 
     constructor(initialCapacity: Int = startCapacity) {
+        if (initialCapacity < 0)
+            throw IllegalArgumentException()
+
         this.capacity = initialCapacity
-        this.array = arrayOfNulls<Any?>(this.capacity) as Array<T?>
+        this.array = arrayOfNulls<Any>(this.capacity) as Array<T>
     }
 
     fun isEmpty(): Boolean = size == 0
@@ -17,18 +20,18 @@ class DynamicArray<T> {
         if (index !in 0 until size)
             throw IndexOutOfBoundsException()
 
-        return array[index]!!
+        return array[index]
     }
 
     fun clear() {
         size = 0
         capacity = startCapacity
-        array = arrayOfNulls<Any?>(this.capacity) as Array<T?>
+        array = arrayOfNulls<Any>(this.capacity) as Array<T>
     }
 
     fun indexOf(element: T): Int {
         for (index in 0 until size)
-            if (array[index]!!.equals(element))
+            if (array[index].equals(element))
                 return index
 
         return -1
@@ -43,13 +46,13 @@ class DynamicArray<T> {
         // alternative: if not to shrink, you can shift right items of index to left by one and assign null to last
         val toShrink = ((size - 1) == capacity / 2) && (capacity >= startCapacity)
         capacity = if (toShrink) capacity / 2 else capacity
-        val newArray = arrayOfNulls<Any?>(capacity) as Array<T?>
+        val newArray = arrayOfNulls<Any>(capacity) as Array<T>
         var newIndex = 0
         var item: T? = null
 
         for (oldIndex in 0 until size) {
             if (oldIndex == index) {
-                item = array[index]!!
+                item = array[index]
             } else {
                 newArray[newIndex] = array[oldIndex]
                 newIndex += 1
@@ -81,11 +84,11 @@ class DynamicArray<T> {
 
         // expand
         if (size + 1 >= capacity) {
-            capacity *= 2
+            capacity = if (capacity == 0) 1 else capacity * 2
 
-            val newArray = arrayOfNulls<Any?>(capacity) as Array<T?>
-            for (index in 0 until size) {
-                newArray[index] = array[index]
+            val newArray = arrayOfNulls<Any>(capacity) as Array<T>
+            for (newIndex in 0 until size) {
+                newArray[newIndex] = array[newIndex]
             }
             array = newArray
         }
@@ -101,10 +104,10 @@ class DynamicArray<T> {
 
         val previousItem = array[index]
         array[index] = element
-        return previousItem!!
+        return previousItem
     }
 
-    fun iterator(): ListIterator<T> {
+    /*fun iterator(): ListIterator<T> {
         return object : ListIterator<T> {
             var index = 0
 
@@ -120,5 +123,5 @@ class DynamicArray<T> {
 
             override fun previousIndex(): Int = index - 11
         }
-    }
+    }*/
 }
