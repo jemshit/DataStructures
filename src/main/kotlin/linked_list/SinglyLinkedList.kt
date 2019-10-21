@@ -1,3 +1,5 @@
+package linked_list
+
 class SinglyLinkedList<T : Any> : Iterable<T> {
 
     class Node<T : Any> {

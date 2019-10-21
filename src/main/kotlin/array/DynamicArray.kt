@@ -1,3 +1,5 @@
+package array
+
 private const val startCapacity = 8
 
 class DynamicArray<T : Any> : Iterable<T> {
