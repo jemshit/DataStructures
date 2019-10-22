@@ -62,7 +62,8 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
         swim(size() - 1)
     }
 
-    // O(n) for linear search + O(logn) for removing
+    // O(n) for linear search + O(logn) for removing.
+    // Can be optimized to O(1)search+O(logn)removal using Map<T,Set<Int>> (T:setOf(indexes T exist)
     fun remove(item: T): Boolean {
         val index = items.indexOf(item)
         if (index == -1)
