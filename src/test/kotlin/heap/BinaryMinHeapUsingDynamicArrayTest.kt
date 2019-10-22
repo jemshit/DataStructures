@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.util.*
 
-internal class BinaryHeapUsingDynamicArrayTest {
+internal class BinaryMinHeapUsingDynamicArrayTest {
     private val loops = 1000
     private val maxSize = 100
 

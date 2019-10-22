@@ -6,6 +6,7 @@ import kotlin.math.max
 
 // Complete Heap
 class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
+
     private lateinit var items: DynamicArray<T>
 
     constructor(initialCapacity: Int = 50) {
@@ -23,9 +24,9 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
         }
     }
 
-    // if each item added using add, it will take logn for each item (total n*logn)
+    // if each item added using add, it will take O(logn) for each item, total O(n*logn)
     // or leaf nodes do not need heapify, so heapify until parent node of last leaf
-    // if you heapify parent, children are heapified anyway
+    // if you heapify parent, children are heapified anyway. Optimized to O(n)?
     fun heapify(unsortedItems: Array<T>) {
         this.items = DynamicArray<T>(unsortedItems.size * 2)
         for (element in unsortedItems) {
@@ -47,6 +48,7 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
 
     fun clear() = items.clear()
 
+    // O(1)
     fun peek(): T? {
         if (isEmpty())
             return null
@@ -54,11 +56,13 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
         return items.get(0)
     }
 
+    // O(log(n))
     fun add(item: T) {
         items.add(item)
         swim(size() - 1)
     }
 
+    // O(n) for linear search + O(logn) for removing
     fun remove(item: T): Boolean {
         val index = items.indexOf(item)
         if (index == -1)
@@ -68,6 +72,7 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
         return true
     }
 
+    // O(logn)
     fun poll(): T? {
         if (isEmpty())
             return null
@@ -88,6 +93,7 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
         items.set(pairIndex, temp)
     }
 
+    // O(log(n))
     private fun removeAt(index: Int): T? {
         if (isEmpty() || index < 0)
             return null
@@ -122,6 +128,7 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
         return result
     }
 
+    // O(log(n))
     private fun swim(index: Int) {
         if (index == 0)
             return
@@ -134,6 +141,7 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
         }
     }
 
+    // O(logn)
     private fun sink(index: Int) {
         if (index >= (size() - 1))
             return
