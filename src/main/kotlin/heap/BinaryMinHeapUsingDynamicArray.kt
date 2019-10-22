@@ -5,7 +5,7 @@ import kotlin.math.floor
 import kotlin.math.max
 
 // Complete Heap
-class BinaryHeapUsingDynamicArray<T : Comparable<T>> {
+class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
     private lateinit var items: DynamicArray<T>
 
     constructor(initialCapacity: Int = 50) {
