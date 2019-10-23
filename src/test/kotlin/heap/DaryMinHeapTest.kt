@@ -1,16 +1,19 @@
 package heap
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.util.*
 
-internal class BinaryMinHeapUsingDynamicArrayTest {
+internal class DaryMinHeapTest {
+
     private val loops = 1000
     private val maxSize = 100
 
     @Test
     fun `test empty`() {
-        val heap = BinaryMinHeapUsingDynamicArray<Int>()
+        val heap = DaryMinHeap<Int>(4, 0)
         assertEquals(heap.size(), 0)
         assertTrue(heap.isEmpty())
         assertEquals(heap.poll(), null)
@@ -19,28 +22,21 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
 
     @Test
     fun `test heap property`() {
-        var heap: BinaryMinHeapUsingDynamicArray<Int> = BinaryMinHeapUsingDynamicArray()
-        val numberArray = arrayOf(3, 2, 5, 6, 7, 9, 4, 8, 1)
+        val heap = DaryMinHeap<Int>(3, 30)
+        val intArray = arrayOf(3, 2, 5, 6, 7, 9, 4, 8, 1)
 
         // Try manually creating heap
-        for (num in numberArray)
+        for (num in intArray)
             heap.add(num)
         for (index in 1..9)
             assertTrue(index == heap.poll())
-
-        heap.clear()
-
-        // Try heapify constructor
-        heap = BinaryMinHeapUsingDynamicArray<Int>(numberArray)
-        for (num in 1..9)
-            assertTrue(num == heap.poll())
     }
 
     @Test
     fun `test heapify`() {
         for (index in 1 until loops) {
             val array = genRandArray(index)
-            val heap = BinaryMinHeapUsingDynamicArray(array)
+            val heap = DaryMinHeap<Int>(d = 2, initialCapacity = 50, unsortedItems = array)
 
             val priorityQueue = PriorityQueue<Int>(index)
             for (x in array)
@@ -53,10 +49,65 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
     }
 
     @Test
+    fun `test priority queue size param`() {
+        for (index in 1 until loops) {
+            val randomArray = genRandArray(index)
+
+            val heap = DaryMinHeap<Int>(index, randomArray.size)
+            val priorityQueue = PriorityQueue<Int>(index)
+
+            for (item in randomArray) {
+                priorityQueue.add(item)
+                heap.add(item)
+            }
+            while (!priorityQueue.isEmpty())
+                assertEquals(heap.poll(), priorityQueue.poll())
+        }
+    }
+
+    @Test
+    fun `test priority random operations`() {
+        for (loop in 0 until loops) {
+            var randomInt1 = Math.random()
+            var randomInt2 = Math.random()
+            if (randomInt2 < randomInt1) {
+                val tmp = randomInt1
+                randomInt1 = randomInt2
+                randomInt2 = randomInt1
+            }
+
+            val randomArray = genRandArray(loops)
+            val d = 2 + (Math.random() * 6).toInt()
+            val heap = DaryMinHeap<Int>(d, loops)
+            val priorityQueue = PriorityQueue<Int>(loops)
+
+            for (loopIndex in 0 until loops) {
+                val randomArray2 = randomArray[loopIndex]
+                val randomInt3 = Math.random()
+                if (randomInt3 in 0.0..randomInt1) {
+                    heap.add(randomArray2)
+                    priorityQueue.add(randomArray2)
+                } else if (randomInt1 < randomInt3 && randomInt3 <= randomInt2) {
+                    if (!priorityQueue.isEmpty()) assertEquals(heap.poll(), priorityQueue.poll())
+                } else {
+                    heap.clear()
+                    priorityQueue.clear()
+                }
+            }
+
+            if (priorityQueue.peek() == null)
+                Assertions.assertNull(heap.peek())
+            else
+                assertEquals(priorityQueue.peek(), heap.peek()!!)
+        }
+    }
+
+    @Test
     fun `test clear`() {
-        val heap: BinaryMinHeapUsingDynamicArray<String>
         val stringArray = arrayOf("aa", "bb", "cc", "dd", "ee")
-        heap = BinaryMinHeapUsingDynamicArray(stringArray)
+        val heap = DaryMinHeap<String>(2, stringArray.size)
+        for (str in stringArray)
+            heap.add(str)
         heap.clear()
         assertEquals(heap.size(), 0)
         assertTrue(heap.isEmpty())
@@ -65,17 +116,37 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
     @Test
     fun `test containment`() {
         val stringArray = arrayOf("aa", "bb", "cc", "dd", "ee")
-        val heap = BinaryMinHeapUsingDynamicArray(stringArray)
+        val heap = DaryMinHeap<String>(d=2, unsortedItems = stringArray)
         heap.remove("aa")
-        assertFalse(heap.contains("aa"))
+        Assertions.assertFalse(heap.contains("aa"))
         heap.remove("bb")
-        assertFalse(heap.contains("bb"))
+        Assertions.assertFalse(heap.contains("bb"))
         heap.remove("cc")
-        assertFalse(heap.contains("cc"))
+        Assertions.assertFalse(heap.contains("cc"))
         heap.remove("dd")
-        assertFalse(heap.contains("dd"))
+        Assertions.assertFalse(heap.contains("dd"))
         heap.clear()
-        assertFalse(heap.contains("ee"))
+        Assertions.assertFalse(heap.contains("ee"))
+    }
+
+    @Test
+    fun `test removing duplicates`() {
+        val intArray = arrayOf(2, 7, 2, 11, 7, 13, 2)
+        val heap = DaryMinHeap<Int>(3, intArray.size + 1)
+
+        for (element in intArray)
+            heap.add(element)
+        assertTrue(heap.peek() == 2)
+        heap.add(3)
+
+        assertTrue(heap.poll() == 2)
+        assertTrue(heap.poll() == 2)
+        assertTrue(heap.poll() == 2)
+        assertTrue(heap.poll() == 3)
+        assertTrue(heap.poll() == 7)
+        assertTrue(heap.poll() == 7)
+        assertTrue(heap.poll() == 11)
+        assertTrue(heap.poll() == 13)
     }
 
     @Test
@@ -83,7 +154,7 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
         for (index in 0 until loops) {
             val randNums = genRandList(100)
             val priorityQueue = PriorityQueue<Int>()
-            val heap = BinaryMinHeapUsingDynamicArray<Int>()
+            val heap = DaryMinHeap<Int>()
             for (randomNumIndex in randNums.indices) {
                 heap.add(randNums[randomNumIndex])
                 priorityQueue.add(randNums[randomNumIndex])
@@ -101,7 +172,7 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
 
     private fun sequentialRemoving(intArray: Array<Int>, removeOrder: Array<Int>) {
         assertEquals(intArray.size, removeOrder.size)
-        val heap = BinaryMinHeapUsingDynamicArray(intArray)
+        val heap = DaryMinHeap(unsortedItems = intArray)
         val priorityQueue = PriorityQueue<Int>()
         for (value in intArray)
             priorityQueue.offer(value)
@@ -141,9 +212,9 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
     }
 
     @Test
-    fun `test removing duplicates`() {
+    fun `test removing duplicates 2`() {
         val intArray = arrayOf(2, 7, 2, 11, 7, 13, 2)
-        val heap = BinaryMinHeapUsingDynamicArray(intArray)
+        val heap = DaryMinHeap(unsortedItems = intArray)
 
         assertTrue(heap.peek() == 2)
         heap.add(3)
@@ -163,7 +234,7 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
         for (loopIndex in 0 until loops) {
             val randNums = genRandList(loopIndex)
             val priorityQueue = PriorityQueue<Int>()
-            val heap = BinaryMinHeapUsingDynamicArray<Int>()
+            val heap = DaryMinHeap<Int>()
 
             // Add all the elements to both priority queues
             for (value in randNums) {
@@ -181,7 +252,7 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
 
                 assertEquals(v1, v2)
                 if (priorityQueue.peek() == null)
-                    assertNull(heap.peek())
+                    Assertions.assertNull(heap.peek())
                 else
                     assertEquals(priorityQueue.peek(), heap.peek()!!)
                 assertEquals(priorityQueue.size, heap.size())
@@ -194,7 +265,7 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
         for (loopIndex in 0 until loops) {
             val randNums = genRandList(loopIndex)
             val priorityQueue = PriorityQueue<Int>()
-            val heap = BinaryMinHeapUsingDynamicArray<Int>()
+            val heap = DaryMinHeap<Int>()
 
             // Add all the elements to both priority queues
             for (value in randNums) {
@@ -213,7 +284,7 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
                 priorityQueue.remove(removeNum)
                 heap.remove(removeNum)
                 if (priorityQueue.peek() == null)
-                    assertNull(heap.peek())
+                    Assertions.assertNull(heap.peek())
                 else
                     assertEquals(priorityQueue.peek(), heap.peek()!!)
                 assertEquals(priorityQueue.size, heap.size())
@@ -226,7 +297,7 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
         val uniqueList = genUniqueRandList(loops)
 
         val priorityQueue = PriorityQueue<Int>()
-        val heap = BinaryMinHeapUsingDynamicArray<Int>()
+        val heap = DaryMinHeap<Int>()
 
         for (size in uniqueList) {
             heap.clear()
@@ -258,7 +329,7 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
                 heap.remove(removeNum)
 
                 if (priorityQueue.peek() == null)
-                    assertNull(heap.peek())
+                    Assertions.assertNull(heap.peek())
                 else
                     assertEquals(priorityQueue.peek(), heap.peek()!!)
                 assertEquals(priorityQueue.size, heap.size())
@@ -289,4 +360,5 @@ internal class BinaryMinHeapUsingDynamicArrayTest {
         Collections.shuffle(list)
         return list
     }
+
 }

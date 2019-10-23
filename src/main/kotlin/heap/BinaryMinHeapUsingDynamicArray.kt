@@ -163,27 +163,5 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
 
         swap(index, smallestChildIndex)
         sink(smallestChildIndex)
-
-        /*if (leftChild == null && rightChild == null)
-            return
-        if (leftChild == null && rightChild != null) {
-            if (less(rightChild, items.get(index))) {
-                swap(index, rightChildIndex)
-                sink(rightChildIndex)
-            }
-        } else if (rightChild == null && leftChild != null) {
-            if (less(leftChild, items.get(index))) {
-                swap(index, leftChildIndex)
-                sink(leftChildIndex)
-            }
-        } else {
-            if (less(rightChild!!, leftChild!!)) {
-                swap(index, rightChildIndex)
-                sink(rightChildIndex)
-            } else {
-                swap(index, leftChildIndex)
-                sink(leftChildIndex)
-            }
-        }*/
     }
 }
