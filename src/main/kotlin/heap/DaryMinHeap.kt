@@ -14,7 +14,7 @@ class DaryMinHeap<T : Comparable<T>> {
     constructor(
         d: Int = 2,
         initialCapacity: Int = 50,
-        unsortedItems: Array<T> = emptyList<T>().toTypedArray<Comparable<T>>() as Array<T>
+        unsortedItems: Array<T> = arrayOfNulls<Comparable<T>>(0) as Array<T>
     ) {
         this.d = max(2, d)
         val capacity = max(0, initialCapacity)
@@ -73,6 +73,7 @@ class DaryMinHeap<T : Comparable<T>> {
         return items.get(0)
     }
 
+    // O(logk^n)
     fun poll(): T? {
         if (isEmpty())
             return null
@@ -92,7 +93,7 @@ class DaryMinHeap<T : Comparable<T>> {
         swim(size() - 1)
     }
 
-    // O(1) search + O(logn) removal
+    // O(1) search + O(logk^n) removal
     fun remove(item: T): Boolean {
         val index = indexOf(item)
         if (index == -1)
@@ -120,6 +121,7 @@ class DaryMinHeap<T : Comparable<T>> {
         indexMap.get(itemWith)?.add(index)
     }
 
+    // O(logk^n)
     private fun removeAt(index: Int): T? {
         val result = items.get(index)
         swap(index, size() - 1)
