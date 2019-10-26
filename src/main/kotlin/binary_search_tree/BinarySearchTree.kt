@@ -311,7 +311,6 @@ class BinarySearchTree<T : Comparable<T>> {
         }
     }
 
-
     fun buildTree(
         nodes: List<T>,
         traversalOrder: TreeTraversalOrder
@@ -322,6 +321,7 @@ class BinarySearchTree<T : Comparable<T>> {
                 return this
             }
             TreeTraversalOrder.IN_ORDER -> {
+                root = buildTreeInOrder(nodes)
                 return this
             }
             TreeTraversalOrder.POST_ORDER -> {
@@ -333,11 +333,9 @@ class BinarySearchTree<T : Comparable<T>> {
         }
     }
 
-
     private fun buildTreePreOrder(nodes: List<T>): Node<T>? {
         if (nodes.isEmpty())
             return null
-        nodes.count()
 
         val root = Node(nodes.get(0), null, null)
         val leftItems = mutableListOf<T>()
@@ -361,6 +359,39 @@ class BinarySearchTree<T : Comparable<T>> {
 
         root.leftChild = if (leftItems.isEmpty()) null else buildTreePreOrder(leftItems)
         root.rightChild = if (rightItems.isEmpty()) null else buildTreePreOrder(rightItems)
+
+        nodeCount += 1
+        return root
+    }
+
+    // Multiple ways to build tree, this will try to build balanced tree
+    private fun buildTreeInOrder(nodes: List<T>): Node<T>? {
+        if (nodes.isEmpty())
+            return null
+
+        val balancedRootIndex = nodes.size / 2
+        val root = Node(nodes.get(balancedRootIndex), null, null)
+
+        val leftItems = mutableListOf<T>()
+        val rightItems = mutableListOf<T>()
+
+        var filledLeft = false
+        for (index in 0 until nodes.size) {
+            if (index == balancedRootIndex) {
+                filledLeft = true
+            } else if (index < balancedRootIndex) {
+                if (filledLeft || nodes.get(index) >= root.data)
+                    throw IllegalArgumentException()
+                leftItems.add(nodes.get(index))
+            } else if (index > balancedRootIndex) {
+                if (nodes.get(index) <= root.data)
+                    throw IllegalArgumentException()
+                rightItems.add(nodes.get(index))
+            }
+        }
+
+        root.leftChild = buildTreeInOrder(leftItems)
+        root.rightChild = buildTreeInOrder(rightItems)
 
         nodeCount += 1
         return root
