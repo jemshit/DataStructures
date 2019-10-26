@@ -114,7 +114,6 @@ class BinarySearchTree<T : Comparable<T>> {
         }
     }
 
-
     private fun findMin(node: Node<T>): Node<T> {
         if (node.leftChild == null)
             return node
@@ -325,6 +324,7 @@ class BinarySearchTree<T : Comparable<T>> {
                 return this
             }
             TreeTraversalOrder.POST_ORDER -> {
+                root = buildTreePostOrder(nodes)
                 return this
             }
             TreeTraversalOrder.LEVEL_ORDER -> {
@@ -392,6 +392,35 @@ class BinarySearchTree<T : Comparable<T>> {
 
         root.leftChild = buildTreeInOrder(leftItems)
         root.rightChild = buildTreeInOrder(rightItems)
+
+        nodeCount += 1
+        return root
+    }
+
+    private fun buildTreePostOrder(nodes: List<T>): Node<T>? {
+        if (nodes.isEmpty())
+            return null
+
+        val root = Node(nodes.get(nodes.size - 1), null, null)
+        val leftItems = mutableListOf<T>()
+        val rightItems = mutableListOf<T>()
+
+        var rightFilled = false
+        for (reverseIndex in (nodes.size - 2) downTo 0) {
+            if (nodes.get(reverseIndex) > root.data) {
+                if (rightFilled)
+                    throw IllegalArgumentException()
+                rightItems.add(nodes.get(reverseIndex))
+            } else if (nodes.get(reverseIndex) < root.data) {
+                rightFilled = true
+                leftItems.add(nodes.get(reverseIndex))
+            } else {
+                throw IllegalArgumentException()
+            }
+        }
+
+        root.leftChild = buildTreePostOrder(leftItems)
+        root.rightChild = buildTreePostOrder(rightItems)
 
         nodeCount += 1
         return root
