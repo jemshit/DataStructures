@@ -911,3 +911,150 @@ internal class BinarySearchTreePostOrderBuildTest {
     }
 
 }
+
+internal class BinarySearchTreeLevelOrderBuildTest {
+    @Test
+    fun `test buildLevelOrder empty`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>()
+
+        tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+
+        assertEquals(0, tree.size())
+    }
+
+    @Test
+    fun `test buildLevelOrder 1 element`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(1)
+
+        tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+
+        assertEquals(1, tree.size())
+        assertTrue(tree.contains(1))
+    }
+
+    @Test
+    fun `test buildLevelOrder 2 elements`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(3, 2)
+
+        tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+
+        assertEquals(2, tree.size())
+        assertTrue(tree.contains(3))
+        assertTrue(tree.contains(2))
+    }
+
+    @Test
+    fun `test buildLevelOrder 3 elements`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(3, 1, 4)
+
+        tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+
+        assertEquals(3, tree.size())
+        assertTrue(tree.contains(1))
+        assertTrue(tree.contains(3))
+        assertTrue(tree.contains(4))
+    }
+
+    @Test
+    fun `test buildLevelOrder check orders`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(6, 4, 8, 3, 5, 7, 9)
+
+        tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+
+        assertEquals(7, tree.size())
+        assertTrue(tree.contains(3))
+        assertTrue(tree.contains(4))
+        assertTrue(tree.contains(5))
+        assertTrue(tree.contains(6))
+        assertTrue(tree.contains(7))
+        assertTrue(tree.contains(8))
+        assertTrue(tree.contains(8))
+    }
+
+    @Test
+    fun `test buildLevelOrder check orders 2`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(6, 4, 3, 5)
+
+        tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+
+        assertEquals(4, tree.size())
+        assertTrue(tree.contains(4))
+        assertTrue(tree.contains(6))
+        assertTrue(tree.contains(3))
+        assertTrue(tree.contains(5))
+    }
+
+    @Test
+    fun `test buildLevelOrder check orders 3`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(6, 8, 7, 9)
+
+        tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+
+        assertEquals(4, tree.size())
+        assertTrue(tree.contains(7))
+        assertTrue(tree.contains(8))
+        assertTrue(tree.contains(9))
+        assertTrue(tree.contains(6))
+    }
+
+    @Test
+    fun `test buildLevelOrder check orders 4`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(6, 8, 9)
+
+        tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+
+        assertEquals(3, tree.size())
+        assertTrue(tree.contains(9))
+        assertTrue(tree.contains(6))
+        assertTrue(tree.contains(8))
+    }
+
+    @Test
+    fun `test buildLevelOrder incorrect tree`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(6, 8, 4)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+        }
+    }
+
+    @Test
+    fun `test buildLevelOrder incorrect tree 5`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(6, 4, 4)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+        }
+    }
+
+    @Test
+    fun `test buildLevelOrder incorrect tree 2`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(6, 6, 8)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+        }
+    }
+
+    @Test
+    fun `test buildLevelOrder incorrect tree 3`() {
+        val tree = BinarySearchTree<Int>()
+        val items = listOf<Int>(6, 3, 6)
+
+        assertThrows(IllegalArgumentException::class.java) {
+            tree.buildTree(items, TreeTraversalOrder.LEVEL_ORDER)
+        }
+    }
+
+}

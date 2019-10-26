@@ -328,6 +328,7 @@ class BinarySearchTree<T : Comparable<T>> {
                 return this
             }
             TreeTraversalOrder.LEVEL_ORDER -> {
+                root = buildTreeLevelOrder(nodes)
                 return this
             }
         }
@@ -421,6 +422,35 @@ class BinarySearchTree<T : Comparable<T>> {
 
         root.leftChild = buildTreePostOrder(leftItems)
         root.rightChild = buildTreePostOrder(rightItems)
+
+        nodeCount += 1
+        return root
+    }
+
+    private fun buildTreeLevelOrder(nodes: List<T>): Node<T>? {
+        if (nodes.isEmpty())
+            return null
+
+        val root = Node(nodes.get(0), null, null)
+        val leftItems = mutableListOf<T>()
+        val rightItems = mutableListOf<T>()
+
+        for (index in 1 until nodes.size) {
+            if (nodes.get(index) == root.data) {
+                throw IllegalArgumentException()
+            }
+            if (nodes.get(index) < root.data) {
+                if (leftItems.isEmpty() && rightItems.isNotEmpty())
+                    throw IllegalArgumentException()
+                leftItems.add(nodes.get(index))
+            }
+            if (nodes.get(index) > root.data) {
+                rightItems.add(nodes.get(index))
+            }
+        }
+
+        root.leftChild = if (leftItems.isEmpty()) null else buildTreePreOrder(leftItems)
+        root.rightChild = if (rightItems.isEmpty()) null else buildTreePreOrder(rightItems)
 
         nodeCount += 1
         return root
