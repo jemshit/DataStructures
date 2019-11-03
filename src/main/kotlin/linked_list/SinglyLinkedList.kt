@@ -227,5 +227,62 @@ class SinglyLinkedList<T : Any> : Iterable<T> {
         }
     }
 
+    fun reverseLinkedList() {
+        if (size == 0 || size == 1)
+            return
+
+        var head: Node<T>? = this.head
+        var current: Node<T>? = this.head!!.next
+        var next: Node<T>? = current?.next
+
+        this.tail = this.head
+        head?.next = null
+
+        while (head != null) {
+            current?.next = head
+
+            // if reached end
+            if (next != null && next.next == null) {
+                next.next = current
+                head = next
+                break
+            }
+
+            // move (head, current, next) to right
+            val temp = next
+            next = next?.next
+            head = current
+            current = temp
+        }
+
+        this.head = head
+    }
+
+    fun reverseLinkedList2() {
+        if (size == 0 || size == 1)
+            return
+
+        this.tail = this.head
+        var prev: Node<T>? = null
+        var current: Node<T>? = this.head
+
+        while (current != null) {
+            val next = current.next
+            current.next = prev
+            prev = current
+            current = next
+        }
+
+        this.head = prev
+    }
+
+    fun printList() {
+        var node: Node<T>? = this.head
+        while (node != null) {
+            print("${node.data} ")
+            node = node.next
+        }
+        println()
+    }
 }
 

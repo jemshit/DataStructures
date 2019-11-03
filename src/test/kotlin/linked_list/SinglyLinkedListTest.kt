@@ -362,3 +362,33 @@ internal class SinglyLinkedListTest {
     }
 
 }
+
+internal class SinglyLinkedListReverseTest() {
+    @Test
+    fun `test reverse 1`() {
+        val linkedList = SinglyLinkedList<Int>()
+        linkedList.addLast(4)
+        linkedList.addLast(5)
+        linkedList.addLast(1)
+        linkedList.addLast(2)
+        linkedList.printList()
+
+        linkedList.reverseLinkedList2()
+
+        linkedList.printList()
+    }
+
+    @Test
+    fun `test reverse 2`() {
+        val linkedList = SinglyLinkedList<Int>()
+        linkedList.addLast(85)
+        linkedList.addLast(15)
+        linkedList.addLast(4)
+        linkedList.addLast(20)
+        linkedList.printList()
+
+        linkedList.reverseLinkedList2()
+
+        linkedList.printList()
+    }
+}
