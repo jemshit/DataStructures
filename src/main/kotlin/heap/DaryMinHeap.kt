@@ -128,7 +128,7 @@ class DaryMinHeap<T : Comparable<T>> {
         indexMap.get(result)?.remove(size() - 1)
         items.removeAt(size() - 1)
 
-        if (index < size()) {
+        if (index < size() - 1) {
             // Try sink
             val newItem = items.get(index)
             sink(index)
