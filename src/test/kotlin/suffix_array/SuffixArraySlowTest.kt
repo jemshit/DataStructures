@@ -51,4 +51,20 @@ internal class SuffixArraySlowTest {
         assertEquals(1, result[4])
     }
 
+    @Test
+    fun test4() {
+        val text = "ababbab"
+        val suffixArray: SuffixArray = SuffixArraySlow(text)
+
+        val suffArray = suffixArray.suffixArray
+
+        assertEquals(5, suffArray[0])
+        assertEquals(0, suffArray[1])
+        assertEquals(2, suffArray[2])
+        assertEquals(6, suffArray[3])
+        assertEquals(4, suffArray[4])
+        assertEquals(1, suffArray[5])
+        assertEquals(3, suffArray[6])
+    }
+
 }

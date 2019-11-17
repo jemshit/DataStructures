@@ -2,17 +2,15 @@ package suffix_array
 
 // O(M * LogN), M is pattern length, LogN is for Binary Search
 fun SuffixArray.searchPattern(pattern: String): Int? {
-    val patternLength = pattern.length
-
     var leftIndex = 0
     var rightIndex = textLength - 1
     while (leftIndex <= rightIndex) {
-        val middleIndex = (rightIndex - leftIndex + 1) / 2 + leftIndex
+        val middleIndex = leftIndex + (rightIndex - leftIndex + 1) / 2
 
-        var suffix = text.substring(suffixArray[middleIndex])
-        if (suffix.length > patternLength)
-            suffix = suffix.substring(0, patternLength)
-        val compareResult = pattern.compareTo(suffix)
+        var suffixAtMiddle = text.substring(suffixArray[middleIndex])
+        if (suffixAtMiddle.length > pattern.length)
+            suffixAtMiddle = suffixAtMiddle.substring(0, pattern.length)
+        val compareResult = pattern.compareTo(suffixAtMiddle)
 
         if (compareResult == 0)
             return suffixArray[middleIndex]

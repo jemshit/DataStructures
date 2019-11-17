@@ -21,8 +21,7 @@ class SuffixArrayMed(text: String) : SuffixArray(text) {
     override fun buildSuffixArray() {
         // All Suffixes with original start indexes of suffix + rank(a=0,b=1..), nextRank (same for second character)
         val suffixes = Array<Suffix>(textLength) { index ->
-            val rank = text[index] - '$'
-            return@Array Suffix(index, rank, 0)
+            return@Array Suffix(index, text[index] - '$', 0)
         }
         for (index in 0 until textLength)
             if (index + 1 < textLength)
@@ -39,10 +38,10 @@ class SuffixArrayMed(text: String) : SuffixArray(text) {
         // O(LogN): Now sort suffixes according to first 4 chars, then first 8 and so on
         while (length < 2 * textLength) {
             // Update ranks (starts with 0)
+            var prevRank = suffixes[0].rank // used to compare when operating on next suffix
             var newRank = 0
             suffixes[0].rank = newRank
             origIndexToSuffixPos[suffixes[0].index] = 0
-            var prevRank = suffixes[0].rank // used to compare when operating on next suffix
             for (charIndex in 1 until textLength) {
                 // If rank, nextRank are same of previous suffix, assign the same new rank to this suffix
                 val sameAsPrevSuffix = suffixes[charIndex].rank == prevRank
@@ -58,10 +57,10 @@ class SuffixArrayMed(text: String) : SuffixArray(text) {
             for (charIndex in 0 until textLength) {
                 val nextCharIndex = suffixes[charIndex].index + length / 2
                 // For every suffix, store nextRank as rank of suffix whose index = (suffixes[i].index + length / 2)
-                suffixes[charIndex].nextRank = if (nextCharIndex < textLength)
-                    suffixes[origIndexToSuffixPos[nextCharIndex]].rank
+                if (nextCharIndex < textLength)
+                    suffixes[charIndex].nextRank = suffixes[origIndexToSuffixPos[nextCharIndex]].rank
                 else
-                    -1
+                    suffixes[charIndex].nextRank = -1
             }
 
             // O(N*LogN): Sort the suffixes according to first k characters
@@ -73,7 +72,5 @@ class SuffixArrayMed(text: String) : SuffixArray(text) {
         // Get only original suffix start indexes from sorted suffix string array
         for (index in 0 until textLength)
             suffixArray[index] = suffixes[index].index
-
     }
-
 }
