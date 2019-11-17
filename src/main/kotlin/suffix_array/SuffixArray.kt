@@ -47,8 +47,9 @@ abstract class SuffixArray {
 
         var lcpLength = 0
         for (nextSufIndex in 0 until textLength) {
-            if (invSuffixArray[nextSufIndex] > 0) {
-                val sufIndex = suffixArray[invSuffixArray[nextSufIndex] - 1]
+            val lcpIndex = invSuffixArray[nextSufIndex]
+            if (lcpIndex > 0) {
+                val sufIndex = suffixArray[lcpIndex - 1]
                 while (nextSufIndex + lcpLength < textLength
                     && sufIndex + lcpLength < textLength
                     && text[nextSufIndex + lcpLength] == text[sufIndex + lcpLength]
@@ -56,7 +57,7 @@ abstract class SuffixArray {
                     lcpLength += 1
                 }
 
-                lcpArray[invSuffixArray[nextSufIndex]] = lcpLength
+                lcpArray[lcpIndex] = lcpLength
 
                 if (lcpLength > 0)
                     lcpLength -= 1
