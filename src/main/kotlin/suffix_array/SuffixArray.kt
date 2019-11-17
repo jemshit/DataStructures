@@ -18,28 +18,8 @@ abstract class SuffixArray {
 
     protected abstract fun buildSuffixArray()
 
-    // My implementation of Kasai's algorithm, O(N).
+    // Kasai's algorithm, O(N)
     private fun buildLcpArrayKasai() {
-        var lcpLength = 0
-        for (lcpIndex in 1 until textLength) {
-            val prevSuffixStart = suffixArray[lcpIndex - 1]
-            val currentSuffixStart = suffixArray[lcpIndex]
-
-            while (currentSuffixStart + lcpLength < textLength
-                && prevSuffixStart + lcpLength < textLength
-                && text[currentSuffixStart + lcpLength] == text[prevSuffixStart + lcpLength]
-            ) {
-                lcpLength += 1
-            }
-
-            lcpArray[lcpIndex] = lcpLength
-
-            lcpLength = 0
-        }
-    }
-
-    // Kasai's algorithm, don't know why everybody implements in this crazy complex way
-    private fun buildLcpArrayKasai2() {
         val invSuffixArray = IntArray(textLength)
         // if suffixArr[0] is 5, invSuff[5] would store 0
         for (i in 0 until textLength)
@@ -59,10 +39,31 @@ abstract class SuffixArray {
 
                 lcpArray[lcpIndex] = lcpLength
 
+                // Some proof behind this. This makes while loop run less
                 if (lcpLength > 0)
                     lcpLength -= 1
             } else
                 lcpLength = 0
+        }
+    }
+
+    // Simpler implementation, but inner while loop runs much more
+    private fun buildLcpArrayKasai2() {
+        var lcpLength = 0
+        for (lcpIndex in 1 until textLength) {
+            val prevSuffixStart = suffixArray[lcpIndex - 1]
+            val currentSuffixStart = suffixArray[lcpIndex]
+
+            while (currentSuffixStart + lcpLength < textLength
+                && prevSuffixStart + lcpLength < textLength
+                && text[currentSuffixStart + lcpLength] == text[prevSuffixStart + lcpLength]
+            ) {
+                lcpLength += 1
+            }
+
+            lcpArray[lcpIndex] = lcpLength
+
+            lcpLength = 0
         }
     }
 }
