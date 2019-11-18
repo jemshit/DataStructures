@@ -1,4 +1,6 @@
-package suffix_array
+package suffix_array.problems
+
+import suffix_array.SuffixArray
 
 // O(M * LogN), M is pattern length, LogN is for Binary Search
 fun SuffixArray.searchPattern(pattern: String): Int? {

@@ -1,7 +1,9 @@
-package suffix_array
+package suffix_array.problems
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import suffix_array.SuffixArray
+import suffix_array.SuffixArrayMed
 
 internal class SearchPatternTest {
 
