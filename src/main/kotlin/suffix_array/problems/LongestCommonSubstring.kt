@@ -10,7 +10,9 @@ fun longestCommonSubstringLength(text1: String, text2: String): Int {
     val commonLengthUntil: Array<IntArray> = Array<IntArray>(text1.length + 1) { IntArray(text2.length) + 1 }
     var maxCommonSubstring = 0
 
+    // traverse first string
     for (t1Until in 0..text1.length) {
+        // traverse second string to find common suffix
         for (t2Until in 0..text2.length) {
             if (t1Until == 0 || t2Until == 0)
                 commonLengthUntil[t1Until][t2Until] = 0
