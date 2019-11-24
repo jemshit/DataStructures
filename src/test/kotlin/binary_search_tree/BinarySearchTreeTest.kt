@@ -74,7 +74,7 @@ internal class BinarySearchTreeTest {
         val tree = BinarySearchTree<String>()
         assertTrue(tree.isEmpty())
 
-        tree.add("Hello World!")
+        tree.insert("Hello World!")
         assertFalse(tree.isEmpty())
     }
 
@@ -83,7 +83,7 @@ internal class BinarySearchTreeTest {
         val tree = BinarySearchTree<String>()
         assertEquals(tree.size(), 0)
 
-        tree.add("Hello World!")
+        tree.insert("Hello World!")
         assertEquals(tree.size(), 1)
     }
 
@@ -101,41 +101,41 @@ internal class BinarySearchTreeTest {
         assertEquals(tree.height(), 0)
 
         // Layer One
-        tree.add("M")
-        assertEquals(tree.height(), 1)
+        tree.insert("M")
+        assertEquals(0, tree.height())
 
         // Layer Two
-        tree.add("J")
-        assertEquals(tree.height(), 2)
-        tree.add("S")
-        assertEquals(tree.height(), 2)
+        tree.insert("J")
+        assertEquals(1, tree.height())
+        tree.insert("S")
+        assertEquals(1, tree.height())
 
         // Layer Three
-        tree.add("B")
-        assertEquals(tree.height(), 3)
-        tree.add("N")
-        assertEquals(tree.height(), 3)
-        tree.add("Z")
-        assertEquals(tree.height(), 3)
+        tree.insert("B")
+        assertEquals(2, tree.height())
+        tree.insert("N")
+        assertEquals(2, tree.height())
+        tree.insert("Z")
+        assertEquals(2, tree.height())
 
         // Layer 4
-        tree.add("A")
-        assertEquals(tree.height(), 4)
+        tree.insert("A")
+        assertEquals(3, tree.height())
     }
 
     @Test
     fun `test add`() {
         // Add element which does not yet exist
         val tree = BinarySearchTree<Char>()
-        assertTrue(tree.add('A'))
+        assertTrue(tree.insert('A'))
         assertEquals(1, tree.size())
 
         // Add duplicate element
-        assertFalse(tree.add('A'))
+        assertFalse(tree.insert('A'))
         assertEquals(1, tree.size())
 
         // Add a second element which is not a duplicate
-        assertTrue(tree.add('B'))
+        assertTrue(tree.insert('B'))
         assertEquals(2, tree.size())
     }
 
@@ -143,17 +143,17 @@ internal class BinarySearchTreeTest {
     fun `test remove`() {
         // Try removing an element which doesn't exist
         val tree = BinarySearchTree<Char>()
-        tree.add('A')
+        tree.insert('A')
         assertEquals(tree.size(), 1)
         assertFalse(tree.remove('B'))
         assertEquals(tree.size(), 1)
 
         // Try removing an element which does exist
-        tree.add('B')
+        tree.insert('B')
         assertEquals(tree.size(), 2)
         assertTrue(tree.remove('B'))
         assertEquals(tree.size(), 1)
-        assertEquals(1, tree.height())
+        assertEquals(0, tree.height())
 
         // Try removing the root
         assertTrue(tree.remove('A'))
@@ -172,13 +172,13 @@ internal class BinarySearchTreeTest {
         assertFalse(tree.remove(""))
         assertFalse(tree.remove("a"))
 
-        tree.add("M")
+        tree.insert("M")
         assertTrue(tree.remove("M"))
         assertFalse(tree.remove("M"))
 
-        tree.add("M")
-        tree.add("J")
-        tree.add("S")
+        tree.insert("M")
+        tree.insert("J")
+        tree.insert("S")
         assertTrue(tree.remove("M"))
         assertTrue(tree.contains("J"))
         assertTrue(tree.contains("S"))
@@ -192,12 +192,12 @@ internal class BinarySearchTreeTest {
     @Test
     fun `test remove 3`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(6)
-        tree.add(7)
-        tree.add(3)
-        tree.add(2)
-        tree.add(5)
-        tree.add(4)
+        tree.insert(6)
+        tree.insert(7)
+        tree.insert(3)
+        tree.insert(2)
+        tree.insert(5)
+        tree.insert(4)
         assertEquals(6, tree.size())
 
         tree.remove(6)
@@ -211,7 +211,7 @@ internal class BinarySearchTreeTest {
             val tree = BinarySearchTree<Int>()
             val randomList = genRandList(size)
             for (value in randomList) {
-                tree.add(value)
+                tree.insert(value)
             }
 
             Collections.shuffle(randomList)
@@ -232,9 +232,9 @@ internal class BinarySearchTreeTest {
     fun `test contains`() {
         // Setup tree
         val tree = BinarySearchTree<Char>()
-        tree.add('B')
-        tree.add('A')
-        tree.add('C')
+        tree.insert('B')
+        tree.insert('A')
+        tree.insert('C')
 
         // Try looking for an element which doesn't exist
         assertFalse(tree.contains('D'))
@@ -264,15 +264,15 @@ internal class BinarySearchTreeTraversalTest {
     @Test
     fun `concurrentModificationError PreOrder`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(1)
-        tree.add(2)
-        tree.add(3)
+        tree.insert(1)
+        tree.insert(2)
+        tree.insert(3)
 
         val iterator = tree.traverse(TreeTraversalOrder.PRE_ORDER)
 
         assertThrows(ConcurrentModificationException::class.java) {
             while (iterator.hasNext()) {
-                tree.add(0)
+                tree.insert(0)
                 iterator.next()
             }
         }
@@ -281,15 +281,15 @@ internal class BinarySearchTreeTraversalTest {
     @Test
     fun `concurrentModificationError InOrder`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(1)
-        tree.add(2)
-        tree.add(3)
+        tree.insert(1)
+        tree.insert(2)
+        tree.insert(3)
 
         val iterator = tree.traverse(TreeTraversalOrder.IN_ORDER)
 
         assertThrows(ConcurrentModificationException::class.java) {
             while (iterator.hasNext()) {
-                tree.add(0)
+                tree.insert(0)
                 iterator.next()
             }
         }
@@ -298,15 +298,15 @@ internal class BinarySearchTreeTraversalTest {
     @Test
     fun `concurrentModificationError PostOrder`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(1)
-        tree.add(2)
-        tree.add(3)
+        tree.insert(1)
+        tree.insert(2)
+        tree.insert(3)
 
         val iterator = tree.traverse(TreeTraversalOrder.POST_ORDER)
 
         assertThrows(ConcurrentModificationException::class.java) {
             while (iterator.hasNext()) {
-                tree.add(0)
+                tree.insert(0)
                 iterator.next()
             }
         }
@@ -315,15 +315,15 @@ internal class BinarySearchTreeTraversalTest {
     @Test
     fun `concurrentModificationError LevelOrder`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(1)
-        tree.add(2)
-        tree.add(3)
+        tree.insert(1)
+        tree.insert(2)
+        tree.insert(3)
 
         val iterator = tree.traverse(TreeTraversalOrder.LEVEL_ORDER)
 
         assertThrows(ConcurrentModificationException::class.java) {
             while (iterator.hasNext()) {
-                tree.add(0)
+                tree.insert(0)
                 iterator.next()
             }
         }
@@ -332,9 +332,9 @@ internal class BinarySearchTreeTraversalTest {
     @Test
     fun `concurrentModificationError Removing PreOrder`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(1)
-        tree.add(2)
-        tree.add(3)
+        tree.insert(1)
+        tree.insert(2)
+        tree.insert(3)
 
         val iterator = tree.traverse(TreeTraversalOrder.PRE_ORDER)
 
@@ -349,9 +349,9 @@ internal class BinarySearchTreeTraversalTest {
     @Test
     fun `concurrentModificationError Removing InOrder`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(1)
-        tree.add(2)
-        tree.add(3)
+        tree.insert(1)
+        tree.insert(2)
+        tree.insert(3)
 
         val iterator = tree.traverse(TreeTraversalOrder.IN_ORDER)
 
@@ -366,9 +366,9 @@ internal class BinarySearchTreeTraversalTest {
     @Test
     fun `concurrentModificationError Removing PostOrder`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(1)
-        tree.add(2)
-        tree.add(3)
+        tree.insert(1)
+        tree.insert(2)
+        tree.insert(3)
 
         val iterator = tree.traverse(TreeTraversalOrder.POST_ORDER)
 
@@ -383,9 +383,9 @@ internal class BinarySearchTreeTraversalTest {
     @Test
     fun `concurrentModificationError Removing LevelOrder`() {
         val tree = BinarySearchTree<Int>()
-        tree.add(1)
-        tree.add(2)
-        tree.add(3)
+        tree.insert(1)
+        tree.insert(2)
+        tree.insert(3)
 
         val iterator = tree.traverse(TreeTraversalOrder.LEVEL_ORDER)
 
@@ -439,7 +439,7 @@ internal class BinarySearchTreeTraversalTest {
         // Construct Binary Tree and test tree
         for (value in input) {
             testTree = TestTreeNode.add(testTree, value)
-            tree.add(value)
+            tree.insert(value)
         }
 
         // Generate the expected output for the particular traversal

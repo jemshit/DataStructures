@@ -11,104 +11,114 @@ enum class TreeTraversalOrder {
 }
 
 class BinarySearchTree<T : Comparable<T>> {
-    private var nodeCount: Int = 0
     private var root: Node<T>? = null
+    private var nodeCount: Int = 0
 
     class Node<T : Comparable<T>> {
         var data: T
         var leftChild: Node<T>? = null
         var rightChild: Node<T>? = null
 
-        constructor(data: T, leftChild: Node<T>?, rightChild: Node<T>?) {
+        constructor(data: T, leftChild: Node<T>? = null, rightChild: Node<T>? = null) {
             this.data = data
             this.leftChild = leftChild
             this.rightChild = rightChild
         }
     }
 
+    // standard
     fun size(): Int = nodeCount
 
     fun isEmpty(): Boolean = nodeCount == 0
 
-    fun add(item: T): Boolean {
-        if (root == null) {
-            root = Node(item, null, null)
-            nodeCount += 1
-            return true
-        }
+    private fun find(node: Node<T>?, item: T): Node<T>? {
+        if (node == null) return null
 
-        return add(root!!, item) != null
+        val cmpResult = node.data.compareTo(item)
+        if (cmpResult == 0)
+            return node
+        else if (cmpResult < 0)
+            return find(node.rightChild, item)
+        else
+            return find(node.leftChild, item)
     }
 
-    private fun add(node: Node<T>, item: T): Node<T>? {
-        val compareResult = node.data.compareTo(item)
-        if (compareResult == 0) {
-            // Do Not allow duplicate nodes
-            return null
-        } else if (compareResult < 0) {
-            if (node.rightChild == null) {
-                // Add as right child
-                node.rightChild = Node(item, null, null)
-                nodeCount += 1
-                return node.rightChild
-            }
-            return add(node.rightChild!!, item)
-        } else {
-            if (node.leftChild == null) {
-                // Add as left child
-                node.leftChild = Node(item, null, null)
-                nodeCount += 1
-                return node.leftChild
-            }
-            return add(node.leftChild!!, item)
-        }
+    fun contains(item: T): Boolean {
+        val node = find(root, item)
+        return node != null
     }
 
-    private var foundToDelete = false
-
-    fun remove(item: T): Boolean {
+    fun height(): Int {
         if (root == null)
-            return false
-        else if (root!!.data.compareTo(item) == 0 && nodeCount == 1) {
-            root = null
-            nodeCount -= 1
-            return true
-        }
-
-        root = remove(root!!, item)
-        return foundToDelete
+            return 0
+        return height(root!!)
     }
 
-    private fun remove(
-        node: Node<T>?,
-        item: T
-    ): Node<T>? {
+    private fun height(node: Node<T>): Int {
+        val rightHeight = if (node.rightChild == null) 0 else height(node.rightChild!!)
+        val leftHeight = if (node.leftChild == null) 0 else height(node.leftChild!!)
+
+        if (node == root)
+            return max(leftHeight, rightHeight)
+        else
+            return 1 + max(leftHeight, rightHeight)
+    }
+
+    // insert
+    fun insert(data: T): Boolean {
+        if (contains(data))
+            return false
+
+        nodeCount += 1
+        root = insert(data, root)
+        return true
+    }
+
+    private fun insert(data: T, node: Node<T>?): Node<T>? {
         if (node == null)
-            return null
+            return Node(data)
 
-        val comparison = node.data.compareTo(item)
-        if (comparison < 0) {
-            node.rightChild = remove(node.rightChild, item)
+        val cmpResult = data.compareTo(node.data)
+        if (cmpResult == 0)
             return node
-
-        } else if (comparison > 0) {
-            node.leftChild = remove(node.leftChild, item)
+        else if (cmpResult < 0) {
+            node.leftChild = insert(data, node.leftChild)
             return node
-
         } else {
-            foundToDelete = true
+            node.rightChild = insert(data, node.rightChild)
+            return node
+        }
+    }
+
+    // remove
+    fun remove(data: T): Boolean {
+        if (!contains(data))
+            return false
+
+        nodeCount -= 1
+        root = remove(data, root!!)
+        return true
+    }
+
+    private fun remove(data: T, node: Node<T>): Node<T>? {
+        val cmpResult = data.compareTo(node.data)
+        if (cmpResult < 0) {
+            node.leftChild = remove(data, node.leftChild!!)
+            return node
+        } else if (cmpResult > 0) {
+            node.rightChild = remove(data, node.rightChild!!)
+            return node
+        } else {
             if (node.leftChild == null) {
-                nodeCount -= 1
+                // node.right is not changed, no balance needed
                 return node.rightChild
-
             } else if (node.rightChild == null) {
-                nodeCount -= 1
+                // node.left is not changed, no balance needed
                 return node.leftChild
-
             } else {
-                val substitution = findMin(node.rightChild!!)
-                node.data = substitution.data
-                node.rightChild = remove(node.rightChild!!, substitution.data)
+                val rightMin = findMin(node.rightChild!!)
+                node.data = rightMin.data
+                node.rightChild = remove(rightMin.data, node.rightChild!!)
                 return node
             }
         }
@@ -120,45 +130,7 @@ class BinarySearchTree<T : Comparable<T>> {
         return findMin(node.leftChild!!)
     }
 
-    fun contains(item: T): Boolean {
-        val nodeFound = find(root, item)
-        return nodeFound != null
-    }
-
-    private fun find(
-        node: Node<T>?,
-        item: T
-    ): Node<T>? {
-        if (node == null)
-            return null
-
-        val compareResult = node.data.compareTo(item)
-        if (compareResult == 0)
-            return node
-        else if (compareResult < 0)
-            return find(node.rightChild, item)
-        else
-            return find(node.leftChild, item)
-    }
-
-    fun height(): Int {
-        if (root == null)
-            return 0
-        return height(root!!)
-    }
-
-    private fun height(node: Node<T>): Int {
-        if (node.leftChild == null && node.rightChild == null)
-            return 1
-        else if (node.leftChild == null) {
-            return 1 + height(node.rightChild!!)
-        } else if (node.rightChild == null) {
-            return 1 + height(node.leftChild!!)
-        } else {
-            return 1 + max(height(node.rightChild!!), height(node.leftChild!!))
-        }
-    }
-
+    // traverse
     fun traverse(order: TreeTraversalOrder): Iterator<T> {
         return when (order) {
             TreeTraversalOrder.PRE_ORDER -> preOrderTraversal()
@@ -242,15 +214,8 @@ class BinarySearchTree<T : Comparable<T>> {
             private val initialSize = size()
 
             init {
-                if (root != null) {
-                    if (root!!.rightChild != null)
-                        stack.push(Pair(root!!.rightChild!!, false))
-
-                    stack.push(Pair(root!!, true))
-
-                    if (root!!.leftChild != null)
-                        stack.push(Pair(root!!.leftChild!!, false))
-                }
+                if (root != null)
+                    stack.push(Pair(root!!, false))
             }
 
             override fun hasNext(): Boolean {
@@ -310,6 +275,7 @@ class BinarySearchTree<T : Comparable<T>> {
         }
     }
 
+    // build tree
     fun buildTree(
         nodes: List<T>,
         traversalOrder: TreeTraversalOrder
