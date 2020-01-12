@@ -7,7 +7,7 @@ import kotlin.math.max
 // Sequential common control is done through current=[prevX][prevY]+1
 fun longestCommonSubstringLength(text1: String, text2: String): Int {
     // [0][-] and [-][0] are meaningless, because this matrix stores length until i,j. Until 0 doesn't make sense
-    val commonLengthUntil: Array<IntArray> = Array<IntArray>(text1.length + 1) { IntArray(text2.length) + 1 }
+    val commonLengthUntil: Array<IntArray> = Array<IntArray>(text1.length + 1) { IntArray(text2.length + 1) }
     var maxCommonSubstring = 0
 
     // traverse first string
@@ -34,7 +34,7 @@ fun longestCommonSubstringLength(text1: String, text2: String): Int {
 // https://www.geeksforgeeks.org/print-longest-common-substring/
 fun longestCommonSubstring(text1: String, text2: String): String {
     // [0][-] and [-][0] are meaningless, because this matrix stores length until i,j. Until 0 doesn't make sense
-    val commonSuffixLen: Array<IntArray> = Array<IntArray>(text1.length + 1) { IntArray(text2.length) + 1 }
+    val commonSuffixLen: Array<IntArray> = Array<IntArray>(text1.length + 1) { IntArray(text2.length + 1) }
     var maxLen = 0
     var maxLenIndex1 = 0
     var maxLenIndex2 = 0
