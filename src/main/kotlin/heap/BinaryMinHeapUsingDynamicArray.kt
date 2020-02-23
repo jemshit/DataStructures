@@ -34,7 +34,8 @@ class BinaryMinHeapUsingDynamicArray<T : Comparable<T>> {
         }
 
         // try to sink all parents. from last parent to root.
-        val lastParentIndex = max(0, (unsortedItems.size / 2) - 1)
+        val lastChildIndex = size() - 1
+        val lastParentIndex = max(0, (lastChildIndex - 1) / 2)
         for (index in lastParentIndex downTo 0) {
             sink(index)
         }
