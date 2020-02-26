@@ -1,1 +1,1 @@
-Data Structures implemented in Kotlin
+Data Structures naively implemented in Kotlin for learning purposes
