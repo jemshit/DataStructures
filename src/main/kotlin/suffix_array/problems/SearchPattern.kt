@@ -9,6 +9,7 @@ fun SuffixArray.searchPattern(pattern: String): Int? {
     while (leftIndex <= rightIndex) {
         val middleIndex = leftIndex + (rightIndex - leftIndex + 1) / 2
 
+        // does not search in text, but in suffixes
         var suffixAtMiddle = text.substring(suffixArray[middleIndex])
         if (suffixAtMiddle.length > pattern.length)
             suffixAtMiddle = suffixAtMiddle.substring(0, pattern.length)
