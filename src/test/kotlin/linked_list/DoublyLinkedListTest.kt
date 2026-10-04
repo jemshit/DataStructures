@@ -244,6 +244,162 @@ internal class DoublyLinkedListTest{
         assertEquals(1, linkedList.indexOf(33))
     }
 
+    // ---------- operators ----------
+
+    @Test
+    fun `test get operator`() {
+        linkedList.addLast(10)
+        linkedList.addLast(20)
+        linkedList.addLast(30)
+
+        assertEquals(10, linkedList[0])
+        assertEquals(20, linkedList[1])
+        assertEquals(30, linkedList[2])
+
+        assertThrows<IndexOutOfBoundsException> { linkedList[-1] }
+        assertThrows<IndexOutOfBoundsException> { linkedList[3] }
+    }
+
+    @Test
+    fun `test set operator returns the previous item`() {
+        linkedList.addLast(10)
+        linkedList.addLast(20)
+        linkedList.addLast(30)
+
+        assertEquals(20, linkedList.set(1, 99))
+        assertEquals(listOf(10, 99, 30), linkedList.toList())
+
+        linkedList[2] = 77 // assignment form ignores the returned old value
+        assertEquals(listOf(10, 99, 77), linkedList.toList())
+
+        assertThrows<IndexOutOfBoundsException> { linkedList[-1] = 0 }
+        assertThrows<IndexOutOfBoundsException> { linkedList[3] = 0 }
+    }
+
+    @Test
+    fun `test contains operator in`() {
+        linkedList.addLast(10)
+        linkedList.addLast(20)
+
+        assertTrue(10 in linkedList)
+        assertTrue(20 in linkedList)
+        assertFalse(30 in linkedList)
+    }
+
+    @Test
+    fun `test toString`() {
+        assertEquals("[]", linkedList.toString())
+
+        linkedList.addLast(1)
+        linkedList.addLast(2)
+        linkedList.addLast(3)
+        assertEquals("[1, 2, 3]", linkedList.toString())
+    }
+
+    // ---------- reverse ----------
+
+    @Test
+    fun `test reverse`() {
+        // empty and single element are no-ops
+        assertEquals("[]", linkedList.toString())
+        linkedList.reverse()
+        assertEquals("[]", linkedList.toString())
+
+        linkedList.addLast(1)
+        linkedList.reverse()
+        assertEquals(listOf(1), linkedList.toList())
+
+        linkedList.clear()
+        linkedList.addLast(1)
+        linkedList.addLast(2)
+        linkedList.addLast(3)
+        linkedList.addLast(4)
+        linkedList.reverse()
+        assertEquals(listOf(4, 3, 2, 1), linkedList.toList())
+        assertEquals(4, linkedList.peekFirst())
+        assertEquals(1, linkedList.peekLast())
+
+        linkedList.reverse()
+        assertEquals(listOf(1, 2, 3, 4), linkedList.toList())
+    }
+
+    // ---------- fail-fast iterator ----------
+
+    @Test
+    fun `test iterator fails fast on structural modification`() {
+        linkedList.addLast(1)
+        linkedList.addLast(2)
+
+        val iterator = linkedList.iterator()
+        assertEquals(1, iterator.next())
+
+        linkedList.addLast(3)
+
+        assertThrows<ConcurrentModificationException> { iterator.next() }
+    }
+
+    @Test
+    fun `test clear invalidates iterator`() {
+        linkedList.addLast(1)
+        linkedList.addLast(2)
+
+        val iterator = linkedList.iterator()
+        assertEquals(1, iterator.next())
+
+        linkedList.clear()
+
+        assertThrows<ConcurrentModificationException> { iterator.next() }
+    }
+
+    @Test
+    fun `test reverse invalidates iterator`() {
+        linkedList.addLast(1)
+        linkedList.addLast(2)
+        linkedList.addLast(3)
+
+        val iterator = linkedList.iterator()
+        assertEquals(1, iterator.next())
+
+        linkedList.reverse()
+
+        assertThrows<ConcurrentModificationException> { iterator.next() }
+    }
+
+    @Test
+    fun `test set does not invalidate iterator`() {
+        linkedList.addLast(1)
+        linkedList.addLast(2)
+
+        val iterator = linkedList.iterator()
+        assertEquals(1, iterator.next())
+
+        linkedList[1] = 99 // data swap, not a structural change
+
+        // still valid, but sees the new data because it points at the same node
+        assertEquals(99, iterator.next())
+        assertFalse(iterator.hasNext())
+    }
+
+    // ---------- reuse after emptying ----------
+
+    @Test
+    fun `test list is usable after being emptied`() {
+        linkedList.addLast(1)
+        linkedList.removeFirst()
+        assertTrue(linkedList.isEmpty())
+
+        linkedList.addFirst(9)
+        assertEquals(9, linkedList.peekFirst())
+        assertEquals(9, linkedList.peekLast())
+
+        linkedList.removeLast()
+        assertTrue(linkedList.isEmpty())
+
+        linkedList.addLast(7)
+        assertEquals(listOf(7), linkedList.toList())
+        assertEquals(7, linkedList.peekLast())
+    }
+
     @Test
     fun `test randomized removing`() {
         val otherSinglyLinkedList = SinglyLinkedList<Int>()

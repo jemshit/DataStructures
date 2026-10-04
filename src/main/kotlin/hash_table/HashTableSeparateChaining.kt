@@ -153,7 +153,7 @@ class HashTableSeparateChaining<K : Any, V : Any> : Iterable<K> {
                     if (newBucket == null)
                         newBucket = DoublyLinkedList()
                     newBucket.addLast(entry)
-                    newTable[newIndex] = bucket
+                    newTable[newIndex] = newBucket
                 }
             }
         }

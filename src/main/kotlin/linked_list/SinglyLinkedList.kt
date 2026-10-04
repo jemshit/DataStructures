@@ -39,6 +39,10 @@ class SinglyLinkedList<T : Any> : Iterable<T> {
     fun isEmpty(): Boolean = size == 0
 
     fun clear() {
+        // no structural change on an already-empty list, so leave modCount alone
+        if (isEmpty())
+            return
+
         // not required on the JVM (dropping dummyHead.next frees the chain); this just breaks the links explicitly
         var node = dummyHead.next
         while (node != null) {
@@ -179,6 +183,7 @@ class SinglyLinkedList<T : Any> : Iterable<T> {
 
     /** Reverses the list in place in O(n). No-op for size <= 1. */
     fun reverse() {
+        // no structural change for 0 or 1 items, so leave modCount alone
         if (size <= 1)
             return
 
