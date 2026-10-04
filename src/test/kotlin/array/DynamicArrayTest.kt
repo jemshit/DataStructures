@@ -21,7 +21,7 @@ internal class DynamicArrayTest {
 
     @Test
     fun `test removing from empty list`() {
-        assertThrows<Exception> {
+        assertThrows<IndexOutOfBoundsException> {
             dynamicIntArray.removeAt(0)
         }
     }
@@ -31,7 +31,7 @@ internal class DynamicArrayTest {
         dynamicIntArray.add(1)
         dynamicIntArray.add(2)
         dynamicIntArray.add(3)
-        assertThrows<Exception> {
+        assertThrows<IndexOutOfBoundsException> {
             dynamicIntArray.removeAt(3)
         }
     }
@@ -40,7 +40,7 @@ internal class DynamicArrayTest {
     fun `test removing from outOfBoundException2`() {
         for (i in 0..999)
             dynamicIntArray.add(789)
-        assertThrows<Exception> {
+        assertThrows<IndexOutOfBoundsException> {
             dynamicIntArray.removeAt(1000)
         }
     }
@@ -49,7 +49,7 @@ internal class DynamicArrayTest {
     fun `test removing from outOfBoundException3`() {
         for (i in 0..999)
             dynamicIntArray.add(789)
-        assertThrows<Exception> {
+        assertThrows<IndexOutOfBoundsException> {
             dynamicIntArray.removeAt(-1)
         }
     }
@@ -58,7 +58,7 @@ internal class DynamicArrayTest {
     fun `test removing from outOfBoundException4`() {
         for (i in 0..15)
             dynamicIntArray.add(1)
-        assertThrows<Exception> {
+        assertThrows<IndexOutOfBoundsException> {
             dynamicIntArray.removeAt(-66)
         }
     }
@@ -204,13 +204,29 @@ internal class DynamicArrayTest {
 
     @Test
     fun `test clear`() {
-        val dynamicArray = DynamicArray<Int>()
+        val dynamicArray = DynamicArray<Int>(100)
         dynamicArray.add(1)
         dynamicArray.add(2)
         assertEquals(2, dynamicArray.size)
+        assertEquals(100, dynamicArray.capacity)
 
         dynamicArray.clear()
         assertTrue(dynamicArray.isEmpty())
+        assertEquals(100, dynamicArray.capacity)
+    }
+
+    @Test
+    fun `test trimToSize`() {
+        val dynamicArray = DynamicArray<Int>(100)
+        dynamicArray.add(1)
+        dynamicArray.add(2)
+        assertEquals(100, dynamicArray.capacity)
+
+        dynamicArray.trimToSize()
+        assertEquals(8, dynamicArray.capacity) // min startCapacity is 8
+        assertEquals(2, dynamicArray.size)
+        assertEquals(1, dynamicArray.get(0))
+        assertEquals(2, dynamicArray.get(1))
     }
 
     @Test
@@ -223,7 +239,73 @@ internal class DynamicArrayTest {
         assertEquals(1, dynamicArray.get(1))
 
         dynamicArray.insert(1, 2)
-        assertEquals(2, dynamicArray.size)
+        assertEquals(3, dynamicArray.size)
+        assertEquals(0, dynamicArray.get(0))
         assertEquals(2, dynamicArray.get(1))
+        assertEquals(1, dynamicArray.get(2))
+    }
+
+    @Test
+    fun `test addFirst and addLast`() {
+        val dynamicArray = DynamicArray<Int>()
+        dynamicArray.addLast(10)
+        dynamicArray.addLast(20)
+        dynamicArray.addFirst(5)
+        assertEquals(3, dynamicArray.size)
+        assertEquals(5, dynamicArray.get(0))
+        assertEquals(10, dynamicArray.get(1))
+        assertEquals(20, dynamicArray.get(2))
+    }
+
+    @Test
+    fun `test removeFirst and removeLast`() {
+        val dynamicArray = DynamicArray<Int>()
+        assertThrows<NoSuchElementException> { dynamicArray.removeFirst() }
+        assertThrows<NoSuchElementException> { dynamicArray.removeLast() }
+
+        dynamicArray.add(1)
+        dynamicArray.add(2)
+        dynamicArray.add(3)
+
+        assertEquals(1, dynamicArray.removeFirst())
+        assertEquals(2, dynamicArray.size)
+        assertEquals(2, dynamicArray.get(0))
+
+        assertEquals(3, dynamicArray.removeLast())
+        assertEquals(1, dynamicArray.size)
+        assertEquals(2, dynamicArray.get(0))
+
+        assertEquals(2, dynamicArray.removeLast())
+        assertTrue(dynamicArray.isEmpty())
+    }
+
+    @Test
+    fun `test iterator`() {
+        val dynamicArray = DynamicArray<Int>()
+        dynamicArray.add(10)
+        dynamicArray.add(20)
+        dynamicArray.add(30)
+
+        val iterator = dynamicArray.iterator()
+        assertTrue(iterator.hasNext())
+        assertFalse(iterator.hasPrevious())
+        assertEquals(0, iterator.nextIndex())
+        assertEquals(-1, iterator.previousIndex())
+
+        assertEquals(10, iterator.next())
+        assertTrue(iterator.hasPrevious())
+        assertEquals(1, iterator.nextIndex())
+        assertEquals(0, iterator.previousIndex())
+
+        assertEquals(20, iterator.next())
+        assertEquals(30, iterator.next())
+        assertFalse(iterator.hasNext())
+        assertThrows<NoSuchElementException> { iterator.next() }
+
+        assertEquals(30, iterator.previous())
+        assertEquals(20, iterator.previous())
+        assertEquals(10, iterator.previous())
+        assertFalse(iterator.hasPrevious())
+        assertThrows<NoSuchElementException> { iterator.previous() }
     }
 }

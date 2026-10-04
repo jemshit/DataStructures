@@ -5,35 +5,46 @@ private const val startCapacity = 8
 class DynamicArray<T : Any> : Iterable<T> {
     var size: Int = 0
         private set
-    private var capacity: Int
-    private var array: Array<T>
+
+    val capacity: Int
+        get() = array.size
+
+    private var array: Array<Any?>
 
     constructor(initialCapacity: Int = startCapacity) {
         if (initialCapacity < 0)
-            throw IllegalArgumentException()
+            throw IllegalArgumentException("Illegal Capacity: $initialCapacity")
 
-        this.capacity = initialCapacity
-        this.array = arrayOfNulls<Any>(this.capacity) as Array<T>
+        this.array = arrayOfNulls(initialCapacity)
     }
 
     fun isEmpty(): Boolean = size == 0
 
+    @Suppress("UNCHECKED_CAST")
     fun get(index: Int): T {
         if (index !in 0 until size)
-            throw IndexOutOfBoundsException()
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
-        return array[index]
+        return array[index] as T
     }
 
     fun clear() {
+        for (i in 0 until size) {
+            array[i] = null
+        }
+        // Alternative approach: array.fill(null, fromIndex = 0, toIndex = size)
         size = 0
-        capacity = startCapacity
-        array = arrayOfNulls<Any>(this.capacity) as Array<T>
+    }
+
+    fun trimToSize() {
+        if (size < array.size) {
+            resize(maxOf(size, startCapacity))
+        }
     }
 
     fun indexOf(element: T): Int {
         for (index in 0 until size)
-            if (array[index].equals(element))
+            if (array[index] == element)
                 return index
 
         return -1
@@ -41,29 +52,40 @@ class DynamicArray<T : Any> : Iterable<T> {
 
     fun contains(element: T): Boolean = indexOf(element) != -1
 
+    @Suppress("UNCHECKED_CAST")
     fun removeAt(index: Int): T {
         if (index !in 0 until size)
-            throw IndexOutOfBoundsException()
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
-        // alternative: if not to shrink, you can shift right items of index to left by one and assign null to last
-        val toShrink = ((size - 1) == capacity / 2) && (capacity >= startCapacity)
-        capacity = if (toShrink) capacity / 2 else capacity
-        val newArray = arrayOfNulls<Any>(capacity) as Array<T>
-        var newIndex = 0
-        var item: T? = null
+        val item = array[index] as T
 
-        for (oldIndex in 0 until size) {
-            if (oldIndex == index) {
-                item = array[index]
-            } else {
-                newArray[newIndex] = array[oldIndex]
-                newIndex += 1
-            }
+        // Shift items to the left in-place
+        for (i in index + 1 until size) {
+            array[i - 1] = array[i]
         }
 
-        array = newArray
+        // Null out trailing element to prevent memory leak
+        array[size - 1] = null
         size -= 1
-        return item!!
+
+        // Shrink when 1/4 full to cap / 2 to prevent thrashing
+        if (size <= array.size / 4 && array.size / 2 >= startCapacity) {
+            resize(array.size / 2)
+        }
+
+        return item
+    }
+
+    fun removeFirst(): T {
+        if (isEmpty())
+            throw NoSuchElementException("Array is empty")
+        return removeAt(0)
+    }
+
+    fun removeLast(): T {
+        if (isEmpty())
+            throw NoSuchElementException("Array is empty")
+        return removeAt(size - 1)
     }
 
     fun remove(element: T): Boolean {
@@ -80,33 +102,44 @@ class DynamicArray<T : Any> : Iterable<T> {
         return true
     }
 
+    fun addFirst(element: T) = insert(0, element)
+
+    fun addLast(element: T) = insert(size, element)
+
     fun insert(index: Int, element: T) {
         if (index !in 0..size)
-            throw IndexOutOfBoundsException()
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
-        // expand
-        if (size + 1 >= capacity) {
-            capacity = if (capacity == 0) 1 else capacity * 2
+        // Expand if capacity is full
+        if (size == array.size) {
+            resize(if (array.isEmpty()) 1 else array.size * 2)
+        }
 
-            val newArray = arrayOfNulls<Any>(capacity) as Array<T>
-            for (newIndex in 0 until size) {
-                newArray[newIndex] = array[newIndex]
-            }
-            array = newArray
+        // Shift elements to the right to make room
+        for (i in size - 1 downTo index) {
+            array[i + 1] = array[i]
         }
 
         array[index] = element
-        if (index >= size)
-            size += 1
+        size += 1
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun set(index: Int, element: T): T {
         if (index !in 0 until size)
-            throw IndexOutOfBoundsException()
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
-        val previousItem = array[index]
+        val previousItem = array[index] as T
         array[index] = element
         return previousItem
+    }
+
+    private fun resize(newCapacity: Int) {
+        val newArray = arrayOfNulls<Any?>(newCapacity)
+        for (i in 0 until size) {
+            newArray[i] = array[i]
+        }
+        array = newArray
     }
 
     override operator fun iterator(): ListIterator<T> {
@@ -114,16 +147,25 @@ class DynamicArray<T : Any> : Iterable<T> {
             var index = 0
 
             override fun hasNext(): Boolean = index < size
-
             override fun hasPrevious(): Boolean = index > 0
 
-            override fun next(): T = array[index]
+            @Suppress("UNCHECKED_CAST")
+            override fun next(): T {
+                if (!hasNext())
+                    throw NoSuchElementException()
+                return array[index++] as T
+            }
 
-            override fun nextIndex(): Int = index + 1
+            override fun nextIndex(): Int = index
 
-            override fun previous(): T = array[index - 1]
+            @Suppress("UNCHECKED_CAST")
+            override fun previous(): T {
+                if (!hasPrevious())
+                    throw NoSuchElementException()
+                return array[--index] as T
+            }
 
-            override fun previousIndex(): Int = index - 11
+            override fun previousIndex(): Int = index - 1
         }
     }
 }
