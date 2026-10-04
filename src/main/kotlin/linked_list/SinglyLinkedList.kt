@@ -1,288 +1,249 @@
 package linked_list
 
+import java.util.ConcurrentModificationException
+
+/**
+ * A singly linked list built around a dummy head node and a stored tail.
+ * The dummy head gives every real item a predecessor, so all insertions and
+ * removals funnel through insertAfter/removeAfter with no head special cases;
+ * the stored tail makes addLast/peekLast O(1). Removal from the tail is O(n)
+ * because there is no back pointer.
+ */
 class SinglyLinkedList<T : Any> : Iterable<T> {
 
-    class Node<T : Any> {
-        val data: T
+    // data is null only for the dummy head. Real items are never null (T : Any),
+    // so reading a real node's data with !! is always safe.
+    private class Node<T : Any>(
+        var data: T?,
         var next: Node<T>? = null
+    )
 
-        constructor(
-            data: T,
-            next: Node<T>? = null
-        ) {
-            this.data = data
-            this.next = next
-        }
-    }
+    // The dummy head is an empty node that always sits in front of the first item.
+    // Every real node therefore has a predecessor, so inserting/removing never needs
+    // an "is it the head?" special case.
+    private val dummyHead = Node<T>(data = null)
+
+    // Invariants:
+    //   empty:     dummyHead.next == null, tail === dummyHead, size == 0
+    //   non-empty: dummyHead.next is the first item, tail is the last item, tail.next == null
+    // tail is never null: it points at the dummy head while the list is empty.
+    private var tail: Node<T> = dummyHead
 
     var size: Int = 0
         private set
-    private var head: Node<T>? = null
-    private var tail: Node<T>? = null
+
+    // Bumped by every structural change: add/remove/clear/reverse (NOT set, which swaps data in place).
+    // Iterators snapshot this at creation; if it moves, they throw ConcurrentModificationException.
+    private var modCount = 0
 
     fun isEmpty(): Boolean = size == 0
 
     fun clear() {
-        if (isEmpty())
-            return
-
-        while (head != null) {
-            val oldHead = head!!
-            head = head!!.next
-            oldHead.next = null
+        // not required on the JVM (dropping dummyHead.next frees the chain); this just breaks the links explicitly
+        var node = dummyHead.next
+        while (node != null) {
+            val next = node.next
+            node.next = null
+            node = next
         }
-
+        dummyHead.next = null
+        tail = dummyHead
         size = 0
+        modCount += 1
     }
 
     fun indexOf(item: T): Int {
-        if (isEmpty())
-            return -1
-
         var index = 0
-        var traverser = head
-        while (traverser != null) {
-            if (traverser.data.equals(item))
+        var node = dummyHead.next
+        while (node != null) {
+            if (node.data == item)
                 return index
 
             index += 1
-            traverser = traverser.next
+            node = node.next
         }
 
         return -1
     }
 
-    fun contains(item: T): Boolean = indexOf(item) != -1
+    operator fun contains(item: T): Boolean = indexOf(item) != -1
 
-    fun addFirst(item: T) {
-        if (isEmpty()) {
-            head = Node(item)
-            tail = head
-        } else {
-            val newNode = Node(item, next = head)
-            head = newNode
-        }
+    operator fun get(index: Int): T {
+        if (index !in 0 until size)
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
-        size += 1
+        return nodeAt(index).data!!
     }
 
-    fun addLast(item: T) {
-        if (isEmpty()) {
-            head = Node(item)
-            tail = head
-        } else {
-            val newNode = Node(item, null)
-            tail!!.next = newNode
-            tail = newNode
-        }
+    /** Replaces the item at [index] and returns the previous one. */
+    operator fun set(index: Int, item: T): T {
+        if (index !in 0 until size)
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
-        size += 1
+        val node = nodeAt(index)
+        val oldData = node.data!!
+        node.data = item
+        return oldData
     }
+
+    // O(1): the dummy head is the predecessor of the first item
+    fun addFirst(item: T) = insertAfter(dummyHead, item)
+
+    // O(1) because tail is stored: insert right after the last item
+    fun addLast(item: T) = insertAfter(tail, item)
 
     fun add(index: Int, item: T) {
         if (index !in 0..size)
-            throw IndexOutOfBoundsException()
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
-        if (index == 0)
-            return addFirst(item)
+        // an append goes through the stored tail, so it stays O(1)
         if (index == size)
             return addLast(item)
 
-        var nodePrev: Node<T>? = head
-        for (tIndex in 1 until index)
-            nodePrev = nodePrev!!.next
-
-        val newNode = Node(item, next = nodePrev!!.next)
-        nodePrev.next = newNode
-        size += 1
+        // index 0 -> insert after the dummy head
+        insertAfter(nodeBefore(index), item)
     }
 
     fun peekFirst(): T {
-        if (head == null)
-            throw IllegalAccessException()
+        if (isEmpty())
+            throw NoSuchElementException("List is empty")
 
-        return head!!.data
+        return dummyHead.next!!.data!!
     }
 
     fun peekLast(): T {
-        if (tail == null)
-            throw IllegalAccessException()
+        if (isEmpty())
+            throw NoSuchElementException("List is empty")
 
-        return tail!!.data
+        return tail.data!!
     }
 
     fun removeFirst(): T {
         if (isEmpty())
-            throw IllegalAccessException()
+            throw NoSuchElementException("List is empty")
 
-        val oldHead = head!!
-        head = head!!.next
-        oldHead.next = null
-
-        size -= 1
-        return oldHead.data
+        return removeAfter(dummyHead)
     }
 
     fun removeLast(): T {
         if (isEmpty())
-            throw IllegalAccessException()
+            throw NoSuchElementException("List is empty")
 
-        if (size == 1)
-            return removeFirst()
-
-        var tailPrev = head!!
-        while (tailPrev.next != tail)
-            tailPrev = tailPrev.next!!
-
-        val oldTail = tail!!
-        tailPrev.next = null
-        tail = tailPrev
-
-        size -= 1
-        return oldTail.data
-    }
-
-    fun remove(node: Node<T>): T {
-        if (isEmpty())
-            throw IllegalAccessException()
-
-        if (node.next == head!!.next)
-            return removeFirst()
-        if (node.next == null)
-            return removeLast()
-
-        var nodePrev: Node<T>? = head!!
-        while (nodePrev != null && nodePrev.next != node)
-            nodePrev = nodePrev.next
-
-        if (nodePrev == null)
-            throw IllegalAccessException()
-
-        nodePrev.next = node.next
-        node.next = null
-        size -= 1
-        return node.data
+        // O(n): no back pointer, so walk from the dummy head to find the node before the tail
+        return removeAfter(nodeBefore(size - 1))
     }
 
     fun removeAt(index: Int): T {
         if (index !in 0 until size)
-            throw IllegalAccessException()
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
-        if (index == 0)
-            return removeFirst()
-        if (index == size - 1)
-            return removeLast()
-
-        var nodePrev: Node<T> = head!!
-        for (prevIndex in 1 until index)
-            nodePrev = nodePrev.next!!
-
-        val node = nodePrev.next!!
-        nodePrev.next = node.next
-        node.next = null
-        size -= 1
-        return node.data
+        // a node can only be unlinked if we hold its predecessor
+        return removeAfter(nodeBefore(index))
     }
 
+    /** Removes the first occurrence of [item]. Returns false if it isn't in the list. */
     fun remove(item: T): Boolean {
-        if (isEmpty())
-            throw IllegalAccessException()
-
-        if (head!!.data.equals(item)) {
-            removeFirst()
-            return true
+        // keep prev while searching, because unlinking needs the predecessor.
+        // The first match wins, same as java.util.List.remove(element).
+        var prev = dummyHead
+        var node = dummyHead.next
+        while (node != null && node.data != item) {
+            prev = node
+            node = node.next
         }
-        if (tail!!.data.equals(item)) {
-            removeLast()
-            return true
-        }
-
-        var nodePrev = head!!
-        while (nodePrev.next != null && !nodePrev.next!!.data.equals(item)) {
-            nodePrev = nodePrev.next!!
-        }
-        if (nodePrev.next == null)
+        if (node == null)
             return false
 
-        val node = nodePrev.next!!
-        nodePrev.next = node.next
-        node.next = null
-        size -= 1
+        removeAfter(prev)
         return true
     }
 
     override operator fun iterator(): Iterator<T> {
         return object : Iterator<T> {
-            private var traverser: Node<T>? = head
+            private var traverser: Node<T>? = dummyHead.next
+            private val expectedModCount = modCount // snapshot at creation
 
-            override fun hasNext(): Boolean {
-                return traverser != null
-            }
+            override fun hasNext(): Boolean = traverser != null
 
             override fun next(): T {
-                val data = traverser!!.data
-                traverser = traverser!!.next
-                return data
+                // fail-fast: a structural change since creation means the traversal is now meaningless
+                if (modCount != expectedModCount)
+                    throw ConcurrentModificationException()
+
+                val node = traverser ?: throw NoSuchElementException()
+                traverser = node.next
+                return node.data!!
             }
         }
     }
 
-    fun reverseLinkedList() {
-        if (size == 0 || size == 1)
+    /** Reverses the list in place in O(n). No-op for size <= 1. */
+    fun reverse() {
+        if (size <= 1)
             return
 
-        var head: Node<T>? = this.head
-        var current: Node<T>? = this.head!!.next
-        var next: Node<T>? = current?.next
+        // the first item becomes the new tail
+        tail = dummyHead.next!!
 
-        this.tail = this.head
-        head?.next = null
-
-        while (head != null) {
-            current?.next = head
-
-            // if reached end
-            if (next != null && next.next == null) {
-                next.next = current
-                head = next
-                break
-            }
-
-            // move (head, current, next) to right
-            val temp = next
-            next = next?.next
-            head = current
-            current = temp
-        }
-
-        this.head = head
-    }
-
-    fun reverseLinkedList2() {
-        if (size == 0 || size == 1)
-            return
-
-        this.tail = this.head
+        // the dummy head is not part of the reversal: it stays in front
         var prev: Node<T>? = null
-        var current: Node<T>? = this.head
-
+        var current: Node<T>? = dummyHead.next
         while (current != null) {
-            val next = current.next
-            current.next = prev
-            prev = current
+            val next = current.next     // 1. remember the rest before we overwrite the link
+            current.next = prev         // 2. flip the pointer backwards
+            prev = current              // 3. step forward
             current = next
         }
 
-        this.head = prev
+        // when the loop ends, prev is the old last item, which is now the first
+        dummyHead.next = prev
+        modCount += 1
     }
 
-    fun printList() {
-        var node: Node<T>? = this.head
-        while (node != null) {
-            print("${node.data} ")
-            node = node.next
-        }
-        println()
+    override fun toString(): String = joinToString(separator = ", ", prefix = "[", postfix = "]")
+
+    private fun insertAfter(prev: Node<T>, item: T) {
+        // point the new node at prev's successor FIRST;
+        // overwriting prev.next first would lose the rest of the list
+        val newNode = Node(item, next = prev.next)
+        prev.next = newNode
+
+        // inserted after the last item (or into an empty list, where prev is the dummy head == tail)
+        if (prev === tail)
+            tail = newNode
+
+        size += 1
+        modCount += 1
     }
+
+    /**
+     * The only place nodes are removed, so tail and size are kept consistent in one spot.
+     * Removes the node after [prev] ([prev] is the dummy head when removing the first item).
+     */
+    private fun removeAfter(prev: Node<T>): T {
+        val node = prev.next!!
+
+        // 1. bypass the node: prev now points at the node's successor
+        prev.next = node.next
+
+        // 2. if the tail was removed, prev is the new tail (the dummy head when the list became empty)
+        if (node === tail)
+            tail = prev
+
+        // 3. detach the removed node completely
+        node.next = null
+        size -= 1
+        modCount += 1
+        return node.data!!
+    }
+
+    /** The node right before position [index] (the dummy head for 0). [index] must be in 0..size. */
+    private fun nodeBefore(index: Int): Node<T> {
+        var node = dummyHead
+        repeat(index) { node = node.next!! }
+        return node
+    }
+
+    /** O(index): walks from the dummy head. [index] must be in 0 until size. */
+    private fun nodeAt(index: Int): Node<T> = nodeBefore(index).next!!
 }
-

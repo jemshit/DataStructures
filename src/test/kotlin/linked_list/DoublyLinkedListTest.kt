@@ -1,6 +1,7 @@
 package linked_list
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -31,28 +32,28 @@ internal class DoublyLinkedListTest{
 
     @Test
     fun `test removeFirst of empty linkedList`() {
-        assertThrows<Exception> {
+        assertThrows<NoSuchElementException> {
             linkedList.removeFirst()
         }
     }
 
     @Test
     fun `test removeLast of empty linkedList`() {
-        assertThrows<Exception> {
+        assertThrows<NoSuchElementException> {
             linkedList.removeLast()
         }
     }
 
     @Test
     fun `test peekFirst of empty linkedList`() {
-        assertThrows<Exception> {
+        assertThrows<NoSuchElementException> {
             linkedList.peekFirst()
         }
     }
 
     @Test
     fun `test peekLast of empty linkedList`() {
-        assertThrows<Exception> {
+        assertThrows<NoSuchElementException> {
             linkedList.peekLast()
         }
     }
@@ -169,6 +170,26 @@ internal class DoublyLinkedListTest{
         linkedList.removeAt(1)
         linkedList.removeAt(0)
         assertEquals(linkedList.size, 0)
+    }
+
+    @Test
+    fun `test remove item on empty list returns false`() {
+        assertFalse(linkedList.remove(5))
+    }
+
+    @Test
+    fun `test invalid indexes throw IndexOutOfBoundsException with a message`() {
+        linkedList.addLast(1)
+
+        val exceptions = listOf(
+            assertThrows<IndexOutOfBoundsException> { linkedList.add(-1, 0) },
+            assertThrows<IndexOutOfBoundsException> { linkedList.add(2, 0) },
+            assertThrows<IndexOutOfBoundsException> { linkedList.removeAt(-1) },
+            assertThrows<IndexOutOfBoundsException> { linkedList.removeAt(1) },
+        )
+
+        exceptions.forEach { assertTrue(it.message!!.contains("Size: 1"), it.message) }
+        assertEquals(listOf(1), linkedList.toList())
     }
 
     @Test

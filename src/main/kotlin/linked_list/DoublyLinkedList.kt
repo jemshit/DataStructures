@@ -88,7 +88,7 @@ class DoublyLinkedList<T : Any> : Iterable<T> {
 
     fun add(index: Int, item: T) {
         if (index !in 0..size)
-            throw IndexOutOfBoundsException()
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
         if (index == 0)
             return addFirst(item)
@@ -106,22 +106,22 @@ class DoublyLinkedList<T : Any> : Iterable<T> {
     }
 
     fun peekFirst(): T {
-        if (head == null)
-            throw IllegalAccessException()
+        if (isEmpty())
+            throw NoSuchElementException("List is empty")
 
         return head!!.data
     }
 
     fun peekLast(): T {
-        if (tail == null)
-            throw IllegalAccessException()
+        if (isEmpty())
+            throw NoSuchElementException("List is empty")
 
         return tail!!.data
     }
 
     fun removeFirst(): T {
         if (isEmpty())
-            throw IllegalAccessException()
+            throw NoSuchElementException("List is empty")
 
         val oldHead = head!!
         head = head!!.next
@@ -136,7 +136,7 @@ class DoublyLinkedList<T : Any> : Iterable<T> {
 
     fun removeLast(): T {
         if (isEmpty())
-            throw IllegalAccessException()
+            throw NoSuchElementException("List is empty")
 
         if (size == 1)
             return removeFirst()
@@ -155,7 +155,7 @@ class DoublyLinkedList<T : Any> : Iterable<T> {
 
     fun remove(node: Node<T>): T {
         if (isEmpty())
-            throw IllegalAccessException()
+            throw NoSuchElementException("List is empty")
 
         if (node.prev == null)
             return removeFirst()
@@ -175,7 +175,7 @@ class DoublyLinkedList<T : Any> : Iterable<T> {
 
     fun removeAt(index: Int): T {
         if (index !in 0 until size)
-            throw IllegalAccessException()
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
         if (index == 0)
             return removeFirst()
@@ -198,15 +198,12 @@ class DoublyLinkedList<T : Any> : Iterable<T> {
     }
 
     fun remove(item: T): Boolean {
+        // first occurrence wins, same as SinglyLinkedList.remove
         if (isEmpty())
-            throw IllegalAccessException()
+            return false
 
         if (head!!.data.equals(item)) {
             removeFirst()
-            return true
-        }
-        if (tail!!.data.equals(item)) {
-            removeLast()
             return true
         }
 
@@ -218,6 +215,11 @@ class DoublyLinkedList<T : Any> : Iterable<T> {
             return false
 
         val node = nodePrev.next!!
+        // first occurrence is the tail itself
+        if (node === tail) {
+            removeLast()
+            return true
+        }
         nodePrev.next = node.next!!
 
         node.next!!.prev = nodePrev
