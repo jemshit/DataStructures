@@ -216,20 +216,6 @@ internal class DynamicArrayTest {
     }
 
     @Test
-    fun `test trimToSize`() {
-        val dynamicArray = DynamicArray<Int>(100)
-        dynamicArray.add(1)
-        dynamicArray.add(2)
-        assertEquals(100, dynamicArray.capacity)
-
-        dynamicArray.trimToSize()
-        assertEquals(8, dynamicArray.capacity) // min startCapacity is 8
-        assertEquals(2, dynamicArray.size)
-        assertEquals(1, dynamicArray.get(0))
-        assertEquals(2, dynamicArray.get(1))
-    }
-
-    @Test
     fun `test insert`() {
         val dynamicArray = DynamicArray<Int>()
         dynamicArray.insert(0, 0)

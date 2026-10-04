@@ -36,12 +36,6 @@ class DynamicArray<T : Any> : Iterable<T> {
         size = 0
     }
 
-    fun trimToSize() {
-        if (size < array.size) {
-            resize(maxOf(size, startCapacity))
-        }
-    }
-
     fun indexOf(element: T): Int {
         for (index in 0 until size)
             if (array[index] == element)
@@ -63,14 +57,15 @@ class DynamicArray<T : Any> : Iterable<T> {
         for (i in index + 1 until size) {
             array[i - 1] = array[i]
         }
+        // Alternative: System.arraycopy(array, index + 1, array, index, size - index - 1)
 
         // Null out trailing element to prevent memory leak
         array[size - 1] = null
         size -= 1
 
         // Shrink when 1/4 full to cap / 2 to prevent thrashing
-        if (size <= array.size / 4 && array.size / 2 >= startCapacity) {
-            resize(array.size / 2)
+        if (size <= capacity / 4 && capacity / 2 >= startCapacity) {
+            resize(capacity / 2)
         }
 
         return item
@@ -111,14 +106,15 @@ class DynamicArray<T : Any> : Iterable<T> {
             throw IndexOutOfBoundsException("Index: $index, Size: $size")
 
         // Expand if capacity is full
-        if (size == array.size) {
-            resize(if (array.isEmpty()) 1 else array.size * 2)
+        if (size == capacity) {
+            resize(if (array.isEmpty()) 1 else capacity * 2)
         }
 
         // Shift elements to the right to make room
         for (i in size - 1 downTo index) {
             array[i + 1] = array[i]
         }
+        // Alternative: System.arraycopy(array, index, array, index + 1, size - index)
 
         array[index] = element
         size += 1
@@ -139,20 +135,26 @@ class DynamicArray<T : Any> : Iterable<T> {
         for (i in 0 until size) {
             newArray[i] = array[i]
         }
+        // Alternative: System.arraycopy(array, 0, newArray, 0, size)
+        // JVM intrinsic that uses native memory copy, faster for large arrays
         array = newArray
     }
 
     override operator fun iterator(): ListIterator<T> {
         return object : ListIterator<T> {
+            // next() item
             var index = 0
 
             override fun hasNext(): Boolean = index < size
+
             override fun hasPrevious(): Boolean = index > 0
 
             @Suppress("UNCHECKED_CAST")
             override fun next(): T {
                 if (!hasNext())
                     throw NoSuchElementException()
+
+                // return current value and increment
                 return array[index++] as T
             }
 
@@ -162,6 +164,8 @@ class DynamicArray<T : Any> : Iterable<T> {
             override fun previous(): T {
                 if (!hasPrevious())
                     throw NoSuchElementException()
+
+                // decrement first, then return
                 return array[--index] as T
             }
 
