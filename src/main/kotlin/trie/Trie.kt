@@ -53,7 +53,7 @@ class Trie(private val alphabetSize: Int = 26) {
 
         for (charIndex in node.children.indices) {
             if (node.children[charIndex] != null) {
-                val charNode: Char = (charIndex + 'a'.toInt()).toChar()
+                val charNode: Char = (charIndex + 'a'.code).toChar()
                 val updatedWordPrefix = wordPrefix + charNode
 
                 result.addAll(getAll(node.children[charIndex]!!, updatedWordPrefix))

@@ -177,3 +177,6 @@ gradle-app.setting
 **/build/
 
 # End of https://www.gitignore.io/api/linux,macos,gradle,windows,intellij+all
+
+# Kotlin Gradle plugin persistent project data
+.kotlin/
