@@ -180,3 +180,6 @@ gradle-app.setting
 
 # Kotlin Gradle plugin persistent project data
 .kotlin/
+
+# Data structure diagrams (mostly SVG)
+drawings/
