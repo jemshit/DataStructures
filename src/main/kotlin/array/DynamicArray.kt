@@ -1,6 +1,6 @@
 package array
 
-private const val startCapacity = 8
+private const val DEFAULT_CAPACITY = 8
 
 class DynamicArray<T : Any> : Iterable<T> {
     var size: Int = 0
@@ -11,7 +11,7 @@ class DynamicArray<T : Any> : Iterable<T> {
 
     private var array: Array<Any?>
 
-    constructor(initialCapacity: Int = startCapacity) {
+    constructor(initialCapacity: Int = DEFAULT_CAPACITY) {
         if (initialCapacity < 0)
             throw IllegalArgumentException("Illegal Capacity: $initialCapacity")
 
@@ -64,7 +64,7 @@ class DynamicArray<T : Any> : Iterable<T> {
         size -= 1
 
         // Shrink when 1/4 full to cap / 2 to prevent thrashing
-        if (size <= capacity / 4 && capacity / 2 >= startCapacity) {
+        if (size <= capacity / 4 && capacity / 2 >= DEFAULT_CAPACITY) {
             resize(capacity / 2)
         }
 
