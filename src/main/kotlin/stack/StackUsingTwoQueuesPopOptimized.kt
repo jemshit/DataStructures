@@ -10,42 +10,30 @@ class StackUsingTwoQueuesPopOptimized<T : Any> {
 
     fun isEmpty(): Boolean = queue1.isEmpty() && queue2.isEmpty()
 
+    // O(n)
     fun push(item: T) {
+        // push into the empty queue, so new item is at its front
         if (queue1.isEmpty()) {
             queue1.enqueue(item)
-            // push everything from queue2 to queue1
+            // move old items behind the new item: top (new item) is always at front
             while (!queue2.isEmpty()) {
                 queue1.enqueue(queue2.dequeue())
             }
-
         } else {
             queue2.enqueue(item)
-            // push everything from queue1 to queue2
             while (!queue1.isEmpty()) {
                 queue2.enqueue(queue1.dequeue())
             }
         }
     }
 
-    fun pop(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
+    // O(1): top is at the front of the non-empty queue
+    fun pop(): T = activeQueue().dequeue()
 
-        if (!queue1.isEmpty()) {
-            return queue1.dequeue()
-        } else {
-            return queue2.dequeue()
-        }
-    }
+    // O(1)
+    fun peek(): T = activeQueue().peek()
 
-    fun peek(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
-
-        if (!queue1.isEmpty()) {
-            return queue1.peek()
-        } else {
-            return queue2.peek()
-        }
-    }
+    // exactly one queue is non-empty (or both empty), holding old items with top at front
+    private fun activeQueue(): QueueUsingDoublyLinkedList<T> =
+        if (queue1.isEmpty()) queue2 else queue1
 }

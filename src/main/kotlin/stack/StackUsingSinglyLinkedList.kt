@@ -14,14 +14,10 @@ class StackUsingSinglyLinkedList<T : Any> {
     }
 
     fun pop(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
         return items.removeFirst()
     }
 
     fun peek(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
         return items.peekFirst()
     }
 }

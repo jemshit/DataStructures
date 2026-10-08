@@ -14,14 +14,10 @@ class StackUsingDoublyLinkedList<T : Any> {
     }
 
     fun pop(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
         return items.removeLast()
     }
 
     fun peek(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
         return items.peekLast()
     }
 }

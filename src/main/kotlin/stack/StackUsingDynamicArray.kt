@@ -4,34 +4,28 @@ import array.DynamicArray
 
 class StackUsingDynamicArray<T : Any> {
 
+    // top = -1 means empty, otherwise it is the index of the top item
     private var top: Int = -1
-    private var items: DynamicArray<T> = DynamicArray()
-    var size: Int = 0
-        private set
 
-    fun isEmpty(): Boolean = size == 0
+    private val items = DynamicArray<T>()
+
+    val size: Int
+        get() = top + 1
+
+    fun isEmpty(): Boolean = top == -1
 
     fun peek(): T {
-        if (isEmpty())
-            throw IllegalArgumentException()
-
         return items.get(top)
     }
 
     fun pop(): T {
-        if (isEmpty())
-            throw IllegalArgumentException()
-
-        val result = items.get(top)
-        items.removeAt(top)
+        val result = items.removeAt(top)
         top -= 1
-        size -= 1
         return result
     }
 
     fun push(item: T) {
         top += 1
-        size += 1
         items.add(item)
     }
 }
