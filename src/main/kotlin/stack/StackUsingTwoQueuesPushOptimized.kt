@@ -10,54 +10,47 @@ class StackUsingTwoQueuesPushOptimized<T : Any> {
 
     fun isEmpty(): Boolean = queue1.isEmpty() && queue2.isEmpty()
 
+    // O(1): append to the end of the active queue, top is its last item
     fun push(item: T) {
-        if (!queue1.isEmpty())
-            queue1.enqueue(item)
-        else
-            queue2.enqueue(item)
+        activeQueue().enqueue(item)
     }
 
+    // O(n)
     fun pop(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
+        // capture before the move: after it, both queues are non-empty
+        val active = activeQueue()
+        val other = otherQueue()
 
-        if (!queue1.isEmpty()) {
-            // push everything from queue1 to queue2, except last item
-            while (queue1.size() > 1) {
-                queue2.enqueue(queue1.dequeue())
-            }
-            return queue1.dequeue()
-
-        } else {
-            // push everything from queue2 to queue1, except last item
-            while (queue2.size() > 1) {
-                queue1.enqueue(queue2.dequeue())
-            }
-            return queue2.dequeue()
+        // move all items except last (top) to the other queue
+        while (active.size() > 1) {
+            other.enqueue(active.dequeue())
         }
+
+        // last item of the active queue is top
+        return active.dequeue()
     }
 
+    // O(n)
     fun peek(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
+        // capture before the move: after it, both queues are non-empty
+        val active = activeQueue()
+        val other = otherQueue()
 
-        if (!queue1.isEmpty()) {
-            // push everything from queue1 to queue2, except last item
-            while (queue1.size() > 1) {
-                queue2.enqueue(queue1.dequeue())
-            }
-            val result = queue1.peek()
-            queue2.enqueue(queue1.dequeue())
-            return result
-
-        } else {
-            // push everything from queue2 to queue1, except last item
-            while (queue2.size() > 1) {
-                queue1.enqueue(queue2.dequeue())
-            }
-            val result = queue2.peek()
-            queue1.enqueue(queue2.dequeue())
-            return result
+        // move all items except last (top) to the other queue
+        while (active.size() > 1) {
+            other.enqueue(active.dequeue())
         }
+
+        // peek last (top), then move it behind the others in the other queue
+        val result = active.peek()
+        other.enqueue(active.dequeue())
+        return result
     }
+
+    // old items stay in the active queue with top at its end
+    private fun activeQueue(): QueueUsingDoublyLinkedList<T> =
+        if (queue1.isEmpty()) queue2 else queue1
+
+    private fun otherQueue(): QueueUsingDoublyLinkedList<T> =
+        if (queue1.isEmpty()) queue1 else queue2
 }

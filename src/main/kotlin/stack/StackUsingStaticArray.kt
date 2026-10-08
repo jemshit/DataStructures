@@ -1,47 +1,41 @@
 package stack
 
-class StackUsingStaticArray<T : Any> {
+private const val DEFAULT_CAPACITY = 100
 
-    private var top: Int = -1
-    private var items: Array<T>
-    var size: Int = 0
-        private set
-    private var capacity: Int = 100
+class StackUsingStaticArray<T : Any>(private val capacity: Int = DEFAULT_CAPACITY) {
 
-    constructor(capacity: Int = 100) {
-        if (capacity <= 0)
-            throw IllegalArgumentException()
-
-        this.capacity = capacity
-        items = arrayOfNulls<Any>(capacity) as Array<T>
+    init {
+        require(capacity > 0) { "capacity must be positive, was $capacity" }
     }
 
-    fun isEmpty(): Boolean = size == 0
+    // top = -1 means empty, otherwise it is the index of the top item
+    private var top: Int = -1
+
+    @Suppress("UNCHECKED_CAST")
+    private val items: Array<T?> = arrayOfNulls<Any?>(capacity) as Array<T?>
+
+    val size: Int
+        get() = top + 1
+
+    fun isEmpty(): Boolean = top == -1
 
     fun peek(): T {
-        if (isEmpty())
-            throw IllegalArgumentException()
-
-        return items[top]
+        check(top != -1) { "stack is empty" }
+        return items[top]!!
     }
 
     fun pop(): T {
-        if (isEmpty())
-            throw IllegalArgumentException()
-
-        val result = items[top]
-        // items[top]=null
+        check(top != -1) { "stack is empty" }
+        val result = items[top]!!
+        // for garbage collection
+        items[top] = null
         top -= 1
-        size -= 1
         return result
     }
 
     fun push(item: T) {
-        if (size == capacity)
-            throw IndexOutOfBoundsException()
-
+        check(top != capacity - 1) { "stack overflow: capacity $capacity reached" }
         top += 1
-        size += 1
         items[top] = item
     }
 }
