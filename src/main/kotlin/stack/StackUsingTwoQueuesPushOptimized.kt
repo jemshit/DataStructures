@@ -6,24 +6,29 @@ class StackUsingTwoQueuesPushOptimized<T : Any> {
     private val queue1 = QueueUsingDoublyLinkedList<T>()
     private val queue2 = QueueUsingDoublyLinkedList<T>()
 
-    fun size(): Int = queue1.size() + queue2.size()
+    val size: Int
+        get() = queue1.size() + queue2.size()
+
+    fun size(): Int = size
 
     fun isEmpty(): Boolean = queue1.isEmpty() && queue2.isEmpty()
 
-    // O(1): append to the end of the active queue, top is its last item
+    // O(1): append to the rear of the active queue, top is its last item
     fun push(item: T) {
         activeQueue().enqueue(item)
     }
 
     // O(n)
     fun pop(): T {
+        if (isEmpty()) throw NoSuchElementException("Stack is empty")
+
         // capture before the move: after it, both queues are non-empty
         val active = activeQueue()
-        val other = otherQueue()
+        val empty = emptyQueue()
 
-        // move all items except last (top) to the other queue
+        // move all items except last (top) to the empty queue
         while (active.size() > 1) {
-            other.enqueue(active.dequeue())
+            empty.enqueue(active.dequeue())
         }
 
         // last item of the active queue is top
@@ -32,25 +37,28 @@ class StackUsingTwoQueuesPushOptimized<T : Any> {
 
     // O(n)
     fun peek(): T {
+        if (isEmpty()) throw NoSuchElementException("Stack is empty")
+
         // capture before the move: after it, both queues are non-empty
         val active = activeQueue()
-        val other = otherQueue()
+        val empty = emptyQueue()
 
-        // move all items except last (top) to the other queue
+        // move all items except last (top) to the empty queue
         while (active.size() > 1) {
-            other.enqueue(active.dequeue())
+            empty.enqueue(active.dequeue())
         }
 
-        // peek last (top), then move it behind the others in the other queue
+        // peek last (top), then move it behind the others in the empty queue
         val result = active.peek()
-        other.enqueue(active.dequeue())
+        empty.enqueue(active.dequeue())
         return result
     }
 
-    // old items stay in the active queue with top at its end
+    // Returns the queue currently holding items
     private fun activeQueue(): QueueUsingDoublyLinkedList<T> =
         if (queue1.isEmpty()) queue2 else queue1
 
-    private fun otherQueue(): QueueUsingDoublyLinkedList<T> =
+    // Returns the queue currently empty and ready to receive items
+    private fun emptyQueue(): QueueUsingDoublyLinkedList<T> =
         if (queue1.isEmpty()) queue1 else queue2
 }

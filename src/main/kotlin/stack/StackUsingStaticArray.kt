@@ -1,6 +1,6 @@
 package stack
 
-private const val DEFAULT_CAPACITY = 100
+private const val DEFAULT_CAPACITY = 8
 
 class StackUsingStaticArray<T : Any>(private val capacity: Int = DEFAULT_CAPACITY) {
 

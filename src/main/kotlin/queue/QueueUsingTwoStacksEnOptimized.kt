@@ -2,47 +2,45 @@ package queue
 
 import stack.StackUsingDoublyLinkedList
 
-// Enqueue Optimized
+// Enqueue Optimized: Enqueue is O(1), Dequeue & Peek are Amortized O(1).
+// Uses the classic "inbox / outbox" pattern.
 class QueueUsingTwoStacksEnOptimized<T : Any> {
-    private var stack1 = StackUsingDoublyLinkedList<T>() // always add to this
-    private var stack2 = StackUsingDoublyLinkedList<T>() // push all from stack1 to here. and pop from here
+    private val inStack = StackUsingDoublyLinkedList<T>()  // Enqueue destination
+    private val outStack = StackUsingDoublyLinkedList<T>() // Dequeue & peek source
 
-    fun size(): Int = stack1.size() + stack2.size()
+    val size: Int
+        get() = inStack.size() + outStack.size()
 
-    fun isEmpty(): Boolean = stack1.isEmpty() && stack2.isEmpty()
+    fun size(): Int = size
 
+    fun isEmpty(): Boolean = inStack.isEmpty() && outStack.isEmpty()
+
+    // O(1): Directly push to inStack
     fun enqueue(item: T) {
-        stack1.push(item)
+        inStack.push(item)
     }
 
+    // Amortized O(1): Pops from outStack. When outStack is empty, transfers all items
+    // from inStack in reverse order (making the oldest item the new top of outStack).
     fun dequeue(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
-
-        // If stack2 is empty, push everything from stack1 to stack2.
-        if (stack2.isEmpty()) {
-            while (!stack1.isEmpty()) {
-                stack2.push(stack1.pop())
-            }
-        }
-
-        // Then pop from stack2
-        return stack2.pop()
+        if (isEmpty()) throw NoSuchElementException("Queue is empty")
+        shiftToOutStackIfNeeded()
+        return outStack.pop()
     }
 
+    // Amortized O(1)
     fun peek(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
-
-        // If stack2 is empty, push everything from stack1 to stack2.
-        if (stack2.isEmpty()) {
-            while (!stack1.isEmpty()) {
-                stack2.push(stack1.pop())
-            }
-        }
-
-        // Then peek from stack2
-        return stack2.peek()
+        if (isEmpty()) throw NoSuchElementException("Queue is empty")
+        shiftToOutStackIfNeeded()
+        return outStack.peek()
     }
 
+    // Transfers all elements from inStack to outStack only when outStack is depleted.
+    private fun shiftToOutStackIfNeeded() {
+        if (outStack.isEmpty()) {
+            while (!inStack.isEmpty()) {
+                outStack.push(inStack.pop())
+            }
+        }
+    }
 }

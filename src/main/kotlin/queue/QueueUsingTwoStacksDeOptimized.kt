@@ -2,44 +2,42 @@ package queue
 
 import stack.StackUsingDoublyLinkedList
 
-// Dequeue Optimized
+// Dequeue Optimized: Enqueue is O(N), Dequeue is O(1), Peek is O(1).
+// The front of the queue is always maintained at the top of mainStack.
 class QueueUsingTwoStacksDeOptimized<T : Any> {
-    private var stack1 = StackUsingDoublyLinkedList<T>() // Front item will be always at top of this
-    private var stack2 = StackUsingDoublyLinkedList<T>() // used as helper
+    private val mainStack = StackUsingDoublyLinkedList<T>()   // Front item is always at the top of this
+    private val helperStack = StackUsingDoublyLinkedList<T>() // Auxiliary buffer used during enqueue
 
-    fun size(): Int = stack1.size()
+    val size: Int
+        get() = mainStack.size()
 
-    fun isEmpty(): Boolean = stack1.isEmpty()
+    fun size(): Int = size
 
+    fun isEmpty(): Boolean = mainStack.isEmpty()
+
+    // O(N): Move all items to helperStack, push the new item to the bottom of mainStack,
+    // then move everything back so the oldest item remains on top.
     fun enqueue(item: T) {
-        if (stack1.isEmpty())
-            stack1.push(item)
-        else {
-            // Pop from stack1 to stack2.
-            while (!stack1.isEmpty()) {
-                stack2.push(stack1.pop())
-            }
-            // Then inset to stack1.
-            stack1.push(item)
-            // Then put everything back from stack2 to stack1
-            while (!stack2.isEmpty()) {
-                stack1.push(stack2.pop())
-            }
+        while (!mainStack.isEmpty()) {
+            helperStack.push(mainStack.pop())
+        }
+
+        mainStack.push(item)
+
+        while (!helperStack.isEmpty()) {
+            mainStack.push(helperStack.pop())
         }
     }
 
+    // O(1): Oldest item is at the top of mainStack
     fun dequeue(): T {
-        if (stack1.isEmpty())
-            throw IllegalAccessException()
-
-        return stack1.pop()
+        if (isEmpty()) throw NoSuchElementException("Queue is empty")
+        return mainStack.pop()
     }
 
+    // O(1)
     fun peek(): T {
-        if (stack1.isEmpty())
-            throw IllegalAccessException()
-
-        return stack1.peek()
+        if (isEmpty()) throw NoSuchElementException("Queue is empty")
+        return mainStack.peek()
     }
-
 }

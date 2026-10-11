@@ -5,7 +5,7 @@ class MonotonicQueue {
 
     fun push(item: Int) {
         while (!items.isEmpty() && item > items.getRear()) {
-            // increasing order from 'front' -> 'back'
+            // increasing order from 'front' -> 'rear'
             items.removeRear()
         }
 

@@ -1,6 +1,5 @@
 package queue
 
-import linked_list.DoublyLinkedList
 import linked_list.SinglyLinkedList
 
 class QueueUsingSinglyLinkedList<T : Any> {
@@ -15,16 +14,10 @@ class QueueUsingSinglyLinkedList<T : Any> {
     }
 
     fun dequeue(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
-
         return items.removeFirst()
     }
 
     fun peek(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
-
         return items.peekFirst()
     }
 }

@@ -71,4 +71,40 @@ internal class QueueUsingStaticArrayTest {
         assertTrue(queue.isEmpty())
     }
 
+    @Test
+    fun `test overflow on full queue`() {
+        val smallQueue = QueueUsingStaticArray<Int>(2)
+        smallQueue.enqueue(1)
+        smallQueue.enqueue(2)
+        assertTrue(smallQueue.isFull())
+
+        org.junit.jupiter.api.assertThrows<IllegalStateException> {
+            smallQueue.enqueue(3)
+        }
+    }
+
+    @Test
+    fun `test circular wrap around`() {
+        val q = QueueUsingStaticArray<Int>(3)
+        q.enqueue(1)
+        q.enqueue(2)
+        assertEquals(1, q.dequeue())
+        q.enqueue(3)
+        q.enqueue(4) // wraps around circular array
+
+        assertEquals(2, q.dequeue())
+        assertEquals(3, q.dequeue())
+        assertEquals(4, q.dequeue())
+        assertTrue(q.isEmpty())
+    }
+
+    @Test
+    fun `test invalid capacity throws`() {
+        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+            QueueUsingStaticArray<Int>(0)
+        }
+        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+            QueueUsingStaticArray<Int>(-5)
+        }
+    }
 }

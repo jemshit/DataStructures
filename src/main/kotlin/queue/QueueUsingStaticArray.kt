@@ -1,56 +1,50 @@
 package queue
 
-// Using Static Array in circular manner. Other non optimized option would be shifting array elements after dequeue
-class QueueUsingStaticArray<T : Any> {
-    private var items: Array<T>
-    private var front: Int = 0
-    private var end: Int = 0
-    private var capacity: Int = 100
-    private var length: Int = 0
+private const val DEFAULT_CAPACITY = 8
 
-    constructor(capacity: Int = 100) {
-        if (capacity <= 0)
-            throw IllegalArgumentException()
+// Using static array in a circular ring-buffer manner.
+class QueueUsingStaticArray<T : Any>(private val capacity: Int = DEFAULT_CAPACITY) {
 
-        this.capacity = capacity
-        this.items = arrayOfNulls<Any>(capacity) as Array<T>
+    init {
+        require(capacity > 0) { "capacity must be positive, was $capacity" }
     }
 
-    fun size(): Int = length
+    private var rear: Int = 0   // position to add new item to
+    private var front: Int = 0  // position to remove item from
 
-    fun isEmpty(): Boolean = length == 0
+    var size: Int = 0
+        private set
+
+    @Suppress("UNCHECKED_CAST")
+    private val items: Array<T?> = arrayOfNulls<Any?>(capacity) as Array<T?>
+
+    fun size(): Int = size
+
+    fun isEmpty(): Boolean = size == 0
+
+    fun isFull(): Boolean = size == capacity
 
     fun enqueue(item: T) {
-        if (length == capacity)
-            throw IndexOutOfBoundsException()
+        check(!isFull()) { "queue overflow: capacity $capacity reached" }
 
-        items[end] = item
-        length += 1
-        end += 1
-        // circulate (end never can pass front by circulating, capacity will be reached)
-        if (end == capacity)
-            end = 0
+        items[rear] = item           // 1. write to current rear
+        rear = (rear + 1) % capacity  // 2. advance rear
+        size += 1
     }
 
     fun dequeue(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
+        check(!isEmpty()) { "queue is empty" }
 
-        val result = items[front]
-        length -= 1
-        front += 1
-        // circulate
-        if (front == capacity)
-            front = 0
+        val result = items[front]!!     // 1. read from current front
+        items[front] = null             // 2. clear for GC, Null out reference
+        front = (front + 1) % capacity  // 3. advance front
+        size -= 1
 
         return result
     }
 
     fun peek(): T {
-        if (isEmpty())
-            throw IllegalAccessException()
-
-        return items[front]
+        check(!isEmpty()) { "queue is empty" }
+        return items[front]!!
     }
-
 }
