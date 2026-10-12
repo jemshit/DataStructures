@@ -2,13 +2,12 @@ package queue
 
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
-import kotlin.math.exp
 
 internal class MaxSlidingWindowTest {
 
     private fun maxSlidingWindow(input: Array<Int>, k: Int)
             : Array<Int> {
-        val window = MonotonicQueue()
+        val window = MonotonicQueue<Int>()
         val result: MutableList<Int> = mutableListOf()
 
         for (index in 0 until input.size) {
@@ -16,10 +15,11 @@ internal class MaxSlidingWindowTest {
                 // fill the window first
                 window.push(input[index])
             } else {
-                // the window begins to slide forward, window size is (k-1)
+                // the window is full now and slides forward one item at a time
                 window.push(input[index])
                 result.add(window.max())
-                window.pop(input[index - k + 1])    //  is the last element of the window
+                // the item k-1 positions behind has just left the window
+                window.pop(input[index - k + 1])
             }
         }
         return result.toTypedArray()
