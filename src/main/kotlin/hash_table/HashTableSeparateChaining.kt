@@ -2,244 +2,212 @@ package hash_table
 
 import linked_list.DoublyLinkedList
 
+private const val DEFAULT_CAPACITY = 50
+private const val LOAD_FACTOR = 0.75f   // grow when size >= LOAD_FACTOR * capacity
 
-private const val defaultCapacity = 50
-private const val defaultLoadFactor: Float = 0.75f
+/**
+ * A hash map with separate chaining: an array of buckets where each bucket is a
+ * DoublyLinkedList of the entries whose hash mapped to that index. O(1) expected
+ * put/get/remove — average chain length is the load factor. Capacity doubles above
+ * the load factor and halves when nearly empty (never below the requested capacity);
+ * unlike java.util.HashMap we use plain % indexing and no treeification.
+ */
+class HashTableSeparateChaining<K : Any, V : Any>(
+    capacity: Int = DEFAULT_CAPACITY
+) : Iterable<K> {
 
-class HashTableSeparateChaining<K : Any, V : Any> : Iterable<K> {
+    /**
+     * key.hashCode() cached once: lookups compare it (cheap) before the expensive
+     * key.equals, and resize never recomputes it. Identity equals, like HashMap.Node.
+     */
+    class Entry<K : Any, V : Any>(val key: K, var value: V) {
+        val hash: Int = key.hashCode()
 
-    class Entry<K : Any, V : Any> {
-        val hash: Int
-        val key: K
-        var value: V
-
-        constructor(key: K, value: V) {
-            this.key = key
-            this.value = value
-            this.hash = key.hashCode()
-        }
-
-        override fun equals(other: Any?): Boolean {
-            if (other == null)
-                return false
-
-            val otherEntry = other as Entry<K, V>
-            if (otherEntry.hash != this.hash)
-                return false
-
-            return this.key.equals(other.key)
-        }
-
-        override fun toString(): String {
-            return "$key -> $value"
-        }
+        override fun toString(): String = "$key -> $value"
     }
 
-    private var loadFactor: Float = defaultLoadFactor
-    private var capacity: Int = defaultCapacity
-    private var sizeThreshold: Int = (loadFactor * capacity).toInt()
+    private var capacity: Int = capacity
+    private val minCapacity: Int = capacity
     private var size: Int = 0
-    private lateinit var table: Array<DoublyLinkedList<Entry<K, V>>?>
 
-    constructor(
-        capacity: Int = defaultCapacity,
-        loadFactor: Float = defaultLoadFactor
-    ) {
-        if (capacity <= 0)
-            throw IllegalArgumentException()
-        if (loadFactor <= 0.1f)
-            throw IllegalArgumentException()
+    /**
+     * Bumped by every structural change: insert, remove, clear (NOT value updates).
+     * Iterators snapshot it and throw ConcurrentModificationException if it moves.
+     */
+    private var modCount: Int = 0
+    private var table: Array<DoublyLinkedList<Entry<K, V>>?>
 
-        this.capacity = capacity
-        this.loadFactor = loadFactor
-        this.sizeThreshold = (loadFactor * capacity).toInt()
-        this.table = arrayOfNulls(capacity)
+    init {
+        require(capacity > 0) { "capacity must be positive, was $capacity" }
+        table = arrayOfNulls(capacity)
     }
 
     fun size(): Int = size
 
     fun isEmpty(): Boolean = size == 0
 
-    private fun getIndex(key: K): Int {
-        val hash = key.hashCode()
-        val positiveHash = if (hash >= 0) hash else hash * (-1)
-        return positiveHash % capacity
-    }
+    /** Sign-bit mask instead of negation: -Int.MIN_VALUE overflows back negative. */
+    private fun indexFor(hash: Int): Int = (hash and 0x7fffffff) % capacity
 
-    fun containsKey(key: K): Boolean = internalGet(key) != null
+    fun containsKey(key: K): Boolean = getEntry(key, key.hashCode()) != null
 
-    fun clear() {
-        if (size == 0) return
-
-        for (bucketIndex in 0 until capacity) {
-            val bucket = table.get(bucketIndex)
-            if (bucket == null || bucket.isEmpty())
-                continue
-            bucket.clear()
-            table[bucketIndex] = null
-        }
-        size = 0
-    }
-
+    /** Adds key -> value, or updates the existing entry. Returns the old value, or null if the key was new. */
     fun put(key: K, value: V): V? {
-        val oldEntry: Entry<K, V>? = internalGet(key)
-        if (oldEntry != null) {
-            val oldValue = oldEntry.value
-            oldEntry.value = value
-            return oldValue
-        }
+        val hash = key.hashCode()              // computed once per operation
+        val index = indexFor(hash)
+        val bucket = table[index]
 
-        val bucketIndex = getIndex(key)
-        var bucket = table.get(bucketIndex)
-        if (bucket == null)
-            bucket = DoublyLinkedList<Entry<K, V>>()
-        bucket.addLast(Entry(key, value))
-        table[bucketIndex] = bucket
-
-        size += 1
-        if (size >= sizeThreshold)
-            resizeTable()
-
-        return null
-    }
-
-    fun get(key: K): V? = internalGet(key)?.value
-
-    private fun internalGet(key: K): Entry<K, V>? {
-        if (size == 0) return null
-
-        val bucketIndex = getIndex(key)
-        val bucket = table.get(bucketIndex)
-        if (bucket == null || bucket.isEmpty())
-            return null
-
-        val iterator = bucket.iterator()
-        while (iterator.hasNext()) {
-            val entry = iterator.next()
-            if (key.equals(entry.key))
-                return entry
-        }
-
-        return null
-    }
-
-    fun remove(key: K): V? {
-        if (size == 0) return null
-
-        val entry = internalGet(key)
-        if (entry != null) {
-            val bucketIndex = getIndex(key)
-            val bucket = table.get(bucketIndex)
-            bucket!!.remove(entry)
-            size -= 1
-        }
-
-        return entry?.value
-    }
-
-    private fun resizeTable() {
-        this.capacity *= 2
-        this.sizeThreshold = (loadFactor * capacity).toInt()
-        val newTable: Array<DoublyLinkedList<Entry<K, V>>?> = arrayOfNulls(capacity)
-
-        for (bucketIndex in 0 until capacity / 2) {
-            val bucket = table.get(bucketIndex)
-            if (bucket != null && !bucket.isEmpty()) {
-                val iterator = bucket.iterator()
-                while (iterator.hasNext()) {
-                    val entry = iterator.next()
-                    val newIndex = getIndex(entry.key)
-                    var newBucket = newTable.get(newIndex)
-                    if (newBucket == null)
-                        newBucket = DoublyLinkedList()
-                    newBucket.addLast(entry)
-                    newTable[newIndex] = newBucket
+        // update path: value swap only — not a structural change, iterators stay valid
+        if (bucket != null) {
+            for (entry in bucket) {
+                if (entry.hash == hash && entry.key.equals(key)) {   // cheap hash first
+                    val oldValue = entry.value
+                    entry.value = value
+                    return oldValue
                 }
             }
         }
 
+        // insert path: append to the chain, creating the bucket lazily
+        val chain = bucket ?: DoublyLinkedList<Entry<K, V>>().also { table[index] = it }
+        chain.addLast(Entry(key, value))
+
+        size += 1
+        modCount += 1
+
+        // grow when size crosses the load factor (live comparison, nothing cached to floor)
+        if (size >= LOAD_FACTOR * capacity && capacity * 2 > 0)
+            resize(capacity * 2)
+
+        return null
+    }
+
+    fun get(key: K): V? = getEntry(key, key.hashCode())?.value
+
+    /** The entry for [key], or null when absent. */
+    private fun getEntry(key: K, hash: Int): Entry<K, V>? {
+        val bucket = table[indexFor(hash)] ?: return null
+        for (entry in bucket) {
+            if (entry.hash == hash && entry.key.equals(key))
+                return entry
+        }
+        return null
+    }
+
+    /** Single pass: walk with the index, removeAt unlinks directly — Entry needs no equals. */
+    fun remove(key: K): V? {
+        val hash = key.hashCode()
+        val bucket = table[indexFor(hash)] ?: return null
+
+        var entryIndex = 0
+        for (entry in bucket) {
+            if (entry.hash == hash && entry.key.equals(key)) {
+                val value = entry.value
+                bucket.removeAt(entryIndex)   // unlink by position — the walk already found it,
+                // no second equals-based search (Entry needs no equals)
+                size -= 1
+                modCount += 1
+
+                // halve when at/below half the load factor: the halved table then sits below
+                // the grow threshold — no grow/shrink ping-pong — and never below minCapacity
+                if (size * 2 <= LOAD_FACTOR * capacity && capacity / 2 >= minCapacity)
+                    resize(capacity / 2)
+
+                return value
+            }
+            entryIndex += 1
+        }
+        return null
+    }
+
+    fun clear() {
+        if (size == 0)
+            return
+
+        for (index in table.indices)
+            table[index] = null              // chains become unreachable; GC collects them
+        size = 0
+        modCount += 1
+        if (capacity > minCapacity)          // grown tables don't keep peak capacity forever
+            resize(minCapacity)
+    }
+
+    /** Entries are reused as-is; cached hashes mean no key.hashCode() recomputation. */
+    private fun resize(newCapacity: Int) {
+        capacity = newCapacity
+
+        val newTable = arrayOfNulls<DoublyLinkedList<Entry<K, V>>>(capacity)
+        for (bucket in table) {
+            if (bucket == null || bucket.isEmpty())
+                continue
+
+            for (entry in bucket) {
+                val index = indexFor(entry.hash)
+                val newBucket = newTable[index] ?: DoublyLinkedList<Entry<K, V>>().also { newTable[index] = it }
+                newBucket.addLast(entry)
+            }
+        }
         table = newTable
     }
 
-    fun keys(): List<K> {
-        if (size == 0) return emptyList()
-        val result = mutableListOf<K>()
-
-        for (bucketIndex in 0 until capacity) {
-            val bucket = table.get(bucketIndex)
-            if (bucket != null && !bucket.isEmpty()) {
-                val iterator = bucket.iterator()
-                while (iterator.hasNext())
-                    result.add(iterator.next().key)
-            }
-        }
-
+    /**
+     * LinkedHashSet: keys are unique by construction, and the linked variant keeps
+     * the table's scan order — the same order [iterator] produces.
+     */
+    fun keys(): Set<K> {
+        val result = LinkedHashSet<K>()
+        for (bucket in table)
+            if (bucket != null)
+                for (entry in bucket)
+                    result.add(entry.key)
         return result
     }
 
     fun values(): List<V> {
-        if (size == 0) return emptyList()
         val result = mutableListOf<V>()
-
-        for (bucketIndex in 0 until capacity) {
-            val bucket = table.get(bucketIndex)
-            if (bucket != null && !bucket.isEmpty()) {
-                val iterator = bucket.iterator()
-                while (iterator.hasNext())
-                    result.add(iterator.next().value)
-            }
-        }
-
+        for (bucket in table)
+            if (bucket != null)
+                for (entry in bucket)
+                    result.add(entry.value)
         return result
     }
 
-    override fun toString(): String {
-        val stringBuilder = StringBuilder()
-        stringBuilder.append("{")
-
-        for (bucketIndex in 0 until capacity) {
-            val bucket = table.get(bucketIndex)
-            if (bucket != null && !bucket.isEmpty()) {
-                val iterator = bucket.iterator()
-                while (iterator.hasNext())
-                    stringBuilder.append(iterator.next().toString() + ", ")
-            }
-        }
-
-        stringBuilder.append("}")
-        return stringBuilder.toString()
-    }
-
-    // borrowed iterator code
+    /**
+     * Fail-fast cursor over the keys. modCount is checked in both hasNext and next
+     * (stricter than java.util, which checks only next).
+     */
     override fun iterator(): Iterator<K> {
-        val initialSize = size()
-
         return object : Iterator<K> {
-            var bucketIndex = 0
-            var bucketIterator = if (table[0] == null) null else table[0]!!.iterator()
+            private val expectedModCount = modCount   // snapshot at creation
+            private var bucketIndex = 0              // next bucket to draw from
+            private var entryIterator: Iterator<Entry<K, V>>? = null
 
             override fun hasNext(): Boolean {
-                if (initialSize != size)
+                if (modCount != expectedModCount)
                     throw ConcurrentModificationException()
-
-                if (bucketIterator == null || !bucketIterator!!.hasNext()) {
-                    bucketIndex += 1
-                    while (bucketIndex < capacity) {
-                        if (table[bucketIndex] != null) {
-                            val nextIterator = table[bucketIndex]!!.iterator()
-                            if (nextIterator.hasNext()) {
-                                bucketIterator = nextIterator
-                                break
-                            }
-                        }
-                        bucketIndex += 1
-                    }
-                }
-                return bucketIndex < capacity
+                advance()
+                return entryIterator != null
             }
 
             override fun next(): K {
-                return bucketIterator!!.next().key
+                if (modCount != expectedModCount)
+                    throw ConcurrentModificationException()
+                advance()
+                return entryIterator?.next()?.key ?: throw NoSuchElementException()
+            }
+
+            /** moves entryIterator to the next bucket that still has entries; null once consumed */
+            private fun advance() {
+                while (entryIterator == null || !entryIterator!!.hasNext()) {
+                    if (bucketIndex >= capacity) {
+                        entryIterator = null
+                        return
+                    }
+                    val bucket = table[bucketIndex]
+                    bucketIndex += 1
+                    if (bucket != null && !bucket.isEmpty())
+                        entryIterator = bucket.iterator()
+                }
             }
         }
     }
