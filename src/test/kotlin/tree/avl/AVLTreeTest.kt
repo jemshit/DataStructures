@@ -1,4 +1,4 @@
-package avl_tree
+package tree.avl
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -150,12 +150,12 @@ internal class AVLTreeTest {
         tree.insert(2)
         tree.insert(1)
         assertEquals(2, tree.root!!.data)
-        assertEquals(1, tree.root!!.leftChild!!.data)
-        assertEquals(3, tree.root!!.rightChild!!.data)
-        assertNull(tree.root!!.leftChild!!.leftChild)
-        assertNull(tree.root!!.leftChild!!.rightChild)
-        assertNull(tree.root!!.rightChild!!.leftChild)
-        assertNull(tree.root!!.rightChild!!.rightChild)
+        assertEquals(1, tree.root!!.left!!.data)
+        assertEquals(3, tree.root!!.right!!.data)
+        assertNull(tree.root!!.left!!.left)
+        assertNull(tree.root!!.left!!.right)
+        assertNull(tree.root!!.right!!.left)
+        assertNull(tree.root!!.right!!.right)
     }
 
     @Test
@@ -165,12 +165,12 @@ internal class AVLTreeTest {
         tree.insert(1)
         tree.insert(2)
         assertEquals(2, tree.root!!.data)
-        assertEquals(1, tree.root!!.leftChild!!.data)
-        assertEquals(3, tree.root!!.rightChild!!.data)
-        assertNull(tree.root!!.leftChild!!.leftChild)
-        assertNull(tree.root!!.leftChild!!.rightChild)
-        assertNull(tree.root!!.rightChild!!.leftChild)
-        assertNull(tree.root!!.rightChild!!.rightChild)
+        assertEquals(1, tree.root!!.left!!.data)
+        assertEquals(3, tree.root!!.right!!.data)
+        assertNull(tree.root!!.left!!.left)
+        assertNull(tree.root!!.left!!.right)
+        assertNull(tree.root!!.right!!.left)
+        assertNull(tree.root!!.right!!.right)
     }
 
     @Test
@@ -180,12 +180,12 @@ internal class AVLTreeTest {
         tree.insert(2)
         tree.insert(3)
         assertEquals(2, tree.root!!.data)
-        assertEquals(1, tree.root!!.leftChild!!.data)
-        assertEquals(3, tree.root!!.rightChild!!.data)
-        assertNull(tree.root!!.leftChild!!.leftChild)
-        assertNull(tree.root!!.leftChild!!.rightChild)
-        assertNull(tree.root!!.rightChild!!.leftChild)
-        assertNull(tree.root!!.rightChild!!.rightChild)
+        assertEquals(1, tree.root!!.left!!.data)
+        assertEquals(3, tree.root!!.right!!.data)
+        assertNull(tree.root!!.left!!.left)
+        assertNull(tree.root!!.left!!.right)
+        assertNull(tree.root!!.right!!.left)
+        assertNull(tree.root!!.right!!.right)
     }
 
     @Test
@@ -195,12 +195,12 @@ internal class AVLTreeTest {
         tree.insert(3)
         tree.insert(2)
         assertEquals(2, tree.root!!.data)
-        assertEquals(1, tree.root!!.leftChild!!.data)
-        assertEquals(3, tree.root!!.rightChild!!.data)
-        assertNull(tree.root!!.leftChild!!.leftChild)
-        assertNull(tree.root!!.leftChild!!.rightChild)
-        assertNull(tree.root!!.rightChild!!.leftChild)
-        assertNull(tree.root!!.rightChild!!.rightChild)
+        assertEquals(1, tree.root!!.left!!.data)
+        assertEquals(3, tree.root!!.right!!.data)
+        assertNull(tree.root!!.left!!.left)
+        assertNull(tree.root!!.left!!.right)
+        assertNull(tree.root!!.right!!.left)
+        assertNull(tree.root!!.right!!.right)
     }
 
     @Test
@@ -218,8 +218,8 @@ internal class AVLTreeTest {
         return if (node.balanceFactor > +1 || node.balanceFactor < -1)
             false
         else
-            validateBalanceFactorValues(node.leftChild) && validateBalanceFactorValues(
-                node.rightChild
+            validateBalanceFactorValues(node.left) && validateBalanceFactorValues(
+                node.right
             )
     }
 

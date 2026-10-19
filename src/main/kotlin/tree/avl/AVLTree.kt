@@ -1,4 +1,4 @@
-package avl_tree
+package tree.avl
 
 import kotlin.math.max
 
@@ -9,23 +9,23 @@ class AVLTree<T : Comparable<T>> {
 
     class AVLNode<T : Comparable<T>> {
         var data: T
-        var leftChild: AVLNode<T>?
-        var rightChild: AVLNode<T>?
+        var left: AVLNode<T>?
+        var right: AVLNode<T>?
 
         var balanceFactor: Int = 0
         var height: Int = 0
 
-        constructor(data: T, leftChild: AVLNode<T>? = null, rightChild: AVLNode<T>? = null) {
+        constructor(data: T, left: AVLNode<T>? = null, right: AVLNode<T>? = null) {
             this.data = data
-            this.leftChild = leftChild
-            this.rightChild = rightChild
+            this.left = left
+            this.right = right
 
             this.update()
         }
 
         fun update() {
-            val rightHeight = if (rightChild == null) -1 else rightChild!!.height
-            val leftHeight = if (leftChild == null) -1 else leftChild!!.height
+            val rightHeight = if (right == null) -1 else right!!.height
+            val leftHeight = if (left == null) -1 else left!!.height
 
             this.height = 1 + max(leftHeight, rightHeight)
             this.balanceFactor = rightHeight - leftHeight
@@ -46,9 +46,9 @@ class AVLTree<T : Comparable<T>> {
         if (cmpResult == 0)
             return node
         else if (cmpResult < 0)
-            return find(data, node.leftChild)
+            return find(data, node.left)
         else
-            return find(data, node.rightChild)
+            return find(data, node.right)
     }
 
     fun contains(data: T): Boolean {
@@ -58,27 +58,27 @@ class AVLTree<T : Comparable<T>> {
 
     // rotations: O(1)
     private fun rightRotate(node: AVLNode<T>): AVLNode<T> {
-        val leftChild = node.leftChild!!
-        node.leftChild = leftChild.rightChild
-        leftChild.rightChild = node
+        val left = node.left!!
+        node.left = left.right
+        left.right = node
 
         // update height
-        node.update() // node became child of 'leftChild', update it first
-        leftChild.update()
+        node.update() // node became child of 'left', update it first
+        left.update()
 
-        return leftChild
+        return left
     }
 
     private fun leftRotate(node: AVLNode<T>): AVLNode<T> {
-        val rightChild = node.rightChild!!
-        node.rightChild = rightChild.leftChild
-        rightChild.leftChild = node
+        val right = node.right!!
+        node.right = right.left
+        right.left = node
 
         // update height
-        node.update() // node became child of 'rightChild', update it first
-        rightChild.update()
+        node.update() // node became child of 'right', update it first
+        right.update()
 
-        return rightChild
+        return right
     }
 
     // unbalanced cases: O(1)
@@ -87,7 +87,7 @@ class AVLTree<T : Comparable<T>> {
     }
 
     private fun leftRightCase(node: AVLNode<T>): AVLNode<T> {
-        node.leftChild = leftRotate(node.leftChild!!)
+        node.left = leftRotate(node.left!!)
         return rightRotate(node)
     }
 
@@ -96,7 +96,7 @@ class AVLTree<T : Comparable<T>> {
     }
 
     private fun rightLeftCase(node: AVLNode<T>): AVLNode<T> {
-        node.rightChild = rightRotate(node.rightChild!!)
+        node.right = rightRotate(node.right!!)
         return leftRotate(node)
     }
 
@@ -104,13 +104,13 @@ class AVLTree<T : Comparable<T>> {
     private fun balance(node: AVLNode<T>): AVLNode<T> {
         if (node.balanceFactor == -2) {
             // left subtree is tall
-            if (node.leftChild!!.balanceFactor <= 0) // if leftChild.bf is 0, then we still do leftLeftCase
+            if (node.left!!.balanceFactor <= 0) // if left.bf is 0, then we still do leftLeftCase
                 return leftLeftCase(node)
             else
                 return leftRightCase(node)
         } else if (node.balanceFactor == +2) {
             // right subtree is tall
-            if (node.rightChild!!.balanceFactor >= 0) // if rightChild.bf is 0, then we still do rightRightCase
+            if (node.right!!.balanceFactor >= 0) // if right.bf is 0, then we still do rightRightCase
                 return rightRightCase(node)
             else
                 return rightLeftCase(node)
@@ -138,9 +138,9 @@ class AVLTree<T : Comparable<T>> {
         if (cmpResult == 0)
             return node
         else if (cmpResult < 0)
-            node.leftChild = insert(data, node.leftChild)
+            node.left = insert(data, node.left)
         else
-            node.rightChild = insert(data, node.rightChild)
+            node.right = insert(data, node.right)
 
         // balance
         // In Recursive BST insert, we get pointers to all ancestors one by one in bottom-up manner.
@@ -162,20 +162,20 @@ class AVLTree<T : Comparable<T>> {
     private fun remove(data: T, node: AVLNode<T>): AVLNode<T>? {
         val cmpResult = data.compareTo(node.data)
         if (cmpResult < 0)
-            node.leftChild = remove(data, node.leftChild!!)
+            node.left = remove(data, node.left!!)
         else if (cmpResult > 0)
-            node.rightChild = remove(data, node.rightChild!!)
+            node.right = remove(data, node.right!!)
         else {
-            if (node.leftChild == null) {
+            if (node.left == null) {
                 // node.right is not changed, no balance needed
-                return node.rightChild
-            } else if (node.rightChild == null) {
+                return node.right
+            } else if (node.right == null) {
                 // node.left is not changed, no balance needed
-                return node.leftChild
+                return node.left
             } else {
-                val rightMin = findMin(node.rightChild!!)
+                val rightMin = findMin(node.right!!)
                 node.data = rightMin.data
-                node.rightChild = remove(rightMin.data, node.rightChild!!)
+                node.right = remove(rightMin.data, node.right!!)
             }
         }
 
@@ -186,8 +186,8 @@ class AVLTree<T : Comparable<T>> {
     }
 
     private fun findMin(node: AVLNode<T>): AVLNode<T> {
-        if (node.leftChild != null)
-            return findMin(node.leftChild!!)
+        if (node.left != null)
+            return findMin(node.left!!)
         return node
     }
 }
