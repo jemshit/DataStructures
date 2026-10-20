@@ -152,9 +152,11 @@ class BinarySearchTree<T : Comparable<T>> {
     }
 
     private fun findMin(node: Node<T>): Node<T> {
-        if (node.left == null)
-            return node
-        return findMin(node.left!!)
+        var current = node
+        while (current.left != null) {
+            current = current.left!!
+        }
+        return current
     }
 
     fun traverse(order: TreeTraversalOrder): Iterator<T> {

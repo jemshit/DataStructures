@@ -2,57 +2,54 @@ package tree.avl
 
 import kotlin.math.max
 
+class AVLNode<T : Comparable<T>>(
+    var data: T,
+    var left: AVLNode<T>? = null,
+    var right: AVLNode<T>? = null,
+) {
+    var balanceFactor: Int = 0
+    var height: Int = 0
+
+    init {
+        update()
+    }
+
+    fun update() {
+        val rightHeight = if (right == null) -1 else right!!.height
+        val leftHeight = if (left == null) -1 else left!!.height
+
+        height = 1 + max(leftHeight, rightHeight)
+        balanceFactor = rightHeight - leftHeight
+    }
+}
+
 class AVLTree<T : Comparable<T>> {
     var root: AVLNode<T>? = null
         private set
     private var nodeCount: Int = 0
 
-    class AVLNode<T : Comparable<T>> {
-        var data: T
-        var left: AVLNode<T>?
-        var right: AVLNode<T>?
-
-        var balanceFactor: Int = 0
-        var height: Int = 0
-
-        constructor(data: T, left: AVLNode<T>? = null, right: AVLNode<T>? = null) {
-            this.data = data
-            this.left = left
-            this.right = right
-
-            this.update()
-        }
-
-        fun update() {
-            val rightHeight = if (right == null) -1 else right!!.height
-            val leftHeight = if (left == null) -1 else left!!.height
-
-            this.height = 1 + max(leftHeight, rightHeight)
-            this.balanceFactor = rightHeight - leftHeight
-        }
-    }
-
-    // standards
+    // Basic queries
     fun size(): Int = nodeCount
 
     fun isEmpty(): Boolean = nodeCount == 0
 
+    /** Returns the tree height in edges; both an empty tree and a leaf report 0. */
     fun height(): Int = root?.height ?: 0
 
-    private fun find(data: T, node: AVLNode<T>?): AVLNode<T>? {
+    private fun find(node: AVLNode<T>?, data: T): AVLNode<T>? {
         if (node == null) return null
 
         val cmpResult = data.compareTo(node.data)
         if (cmpResult == 0)
             return node
         else if (cmpResult < 0)
-            return find(data, node.left)
+            return find(node.left, data)
         else
-            return find(data, node.right)
+            return find(node.right, data)
     }
 
     fun contains(data: T): Boolean {
-        val node = find(data, root)
+        val node = find(root, data)
         return node != null
     }
 
@@ -62,7 +59,7 @@ class AVLTree<T : Comparable<T>> {
         node.left = left.right
         left.right = node
 
-        // update height
+        // Update cached height and balance factor. The lower node must be updated first.
         node.update() // node became child of 'left', update it first
         left.update()
 
@@ -74,7 +71,7 @@ class AVLTree<T : Comparable<T>> {
         node.right = right.left
         right.left = node
 
-        // update height
+        // Update cached height and balance factor. The lower node must be updated first.
         node.update() // node became child of 'right', update it first
         right.update()
 
@@ -104,19 +101,21 @@ class AVLTree<T : Comparable<T>> {
     private fun balance(node: AVLNode<T>): AVLNode<T> {
         if (node.balanceFactor == -2) {
             // left subtree is tall
-            if (node.left!!.balanceFactor <= 0) // if left.bf is 0, then we still do leftLeftCase
+            val left = node.left!!
+            if (left.balanceFactor <= 0) // if left.bf is 0, then we still do leftLeftCase
                 return leftLeftCase(node)
             else
                 return leftRightCase(node)
-        } else if (node.balanceFactor == +2) {
+        } else if (node.balanceFactor == 2) {
             // right subtree is tall
-            if (node.right!!.balanceFactor >= 0) // if right.bf is 0, then we still do rightRightCase
+            val right = node.right!!
+            if (right.balanceFactor >= 0) // if right.bf is 0, then we still do rightRightCase
                 return rightRightCase(node)
             else
                 return rightLeftCase(node)
         }
 
-        // -1, 0, +1 are balanced
+        // -1, 0, and 1 are balanced.
         return node
     }
 
@@ -142,9 +141,8 @@ class AVLTree<T : Comparable<T>> {
         else
             node.right = insert(data, node.right)
 
-        // balance
-        // In Recursive BST insert, we get pointers to all ancestors one by one in bottom-up manner.
-        // So we don't need parent pointer to travel up and update/balance
+        // As recursive calls return, execution visits each ancestor from bottom to top.
+        // That lets us update and rebalance the path to the root without parent pointers.
         node.update()
         return balance(node)
     }
@@ -167,10 +165,10 @@ class AVLTree<T : Comparable<T>> {
             node.right = remove(data, node.right!!)
         else {
             if (node.left == null) {
-                // node.right is not changed, no balance needed
+                // Replace this subtree directly. Ancestors update and rebalance while recursion unwinds.
                 return node.right
             } else if (node.right == null) {
-                // node.left is not changed, no balance needed
+                // Replace this subtree directly. Ancestors update and rebalance while recursion unwinds.
                 return node.left
             } else {
                 val rightMin = findMin(node.right!!)
@@ -179,15 +177,17 @@ class AVLTree<T : Comparable<T>> {
             }
         }
 
-        // balance
-        // accesses all parent nodes in bottom up manner
+        // As recursive calls return, execution visits each ancestor from bottom to top.
+        // That lets us update and rebalance the path to the root without parent pointers.
         node.update()
         return balance(node)
     }
 
     private fun findMin(node: AVLNode<T>): AVLNode<T> {
-        if (node.left != null)
-            return findMin(node.left!!)
-        return node
+        var current = node
+        while (current.left != null) {
+            current = current.left!!
+        }
+        return current
     }
 }

@@ -208,19 +208,58 @@ internal class AVLTreeTest {
         val tree = AVLTree<Int>()
         for (i in 0 until 20) {
             tree.insert(randValue())
-            assertTrue(validateBalanceFactorValues(tree.root))
+            assertAvlInvariants(tree.root)
         }
     }
 
-    // Make sure all balance factor values are either -1, 0 or +1
-    private fun validateBalanceFactorValues(node: AVLTree.AVLNode<Int>?): Boolean {
-        if (node == null) return true
-        return if (node.balanceFactor > +1 || node.balanceFactor < -1)
-            false
-        else
-            validateBalanceFactorValues(node.left) && validateBalanceFactorValues(
-                node.right
-            )
+    /** Independently verifies BST ordering plus the height and balance-factor caches at every node. */
+    private fun assertAvlInvariants(
+        node: AVLNode<Int>?,
+        lowerBound: Int? = null,
+        upperBound: Int? = null,
+    ): Int {
+        if (node == null) return -1
+
+        if (lowerBound != null) assertTrue(node.data > lowerBound)
+        if (upperBound != null) assertTrue(node.data < upperBound)
+
+        val leftHeight = assertAvlInvariants(node.left, lowerBound, node.data)
+        val rightHeight = assertAvlInvariants(node.right, node.data, upperBound)
+        val expectedHeight = 1 + maxOf(leftHeight, rightHeight)
+        val expectedBalanceFactor = rightHeight - leftHeight
+
+        assertEquals(expectedHeight, node.height)
+        assertEquals(expectedBalanceFactor, node.balanceFactor)
+        assertTrue(node.balanceFactor in -1..1)
+
+        return expectedHeight
+    }
+
+    private fun countNodes(node: AVLNode<Int>?): Int {
+        if (node == null) return 0
+        return 1 + countNodes(node.left) + countNodes(node.right)
+    }
+
+    @Test
+    fun `random interleaved insert and remove operations preserve AVL invariants`() {
+        val random = Random(0)
+
+        repeat(120) {
+            val tree = AVLTree<Int>()
+            val model = sortedSetOf<Int>()
+
+            repeat(500) {
+                val value = random.nextInt(200_001) - 100_000
+                val insert = random.nextInt(100) < 55
+                val expected = if (insert) model.add(value) else model.remove(value)
+                val actual = if (insert) tree.insert(value) else tree.remove(value)
+
+                assertEquals(expected, actual)
+                assertEquals(model.size, tree.size())
+                assertEquals(model.size, countNodes(tree.root))
+                assertAvlInvariants(tree.root)
+            }
+        }
     }
 
     private fun randValue(): Int {
@@ -244,6 +283,7 @@ internal class AVLTreeTest {
                 assertTrue(tree.remove(value))
                 assertFalse(tree.contains(value))
                 assertEquals(size - index - 1, tree.size())
+                assertAvlInvariants(tree.root)
             }
 
             assertTrue(tree.isEmpty())
