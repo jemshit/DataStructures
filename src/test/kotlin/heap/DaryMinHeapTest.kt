@@ -1,5 +1,6 @@
 package heap
 
+import array.DynamicArray
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -10,14 +11,63 @@ internal class DaryMinHeapTest {
 
     private val loops = 1000
     private val maxSize = 100
+    private val random = Random(0)
+    private val itemsField = DaryMinHeap::class.java.getDeclaredField("items").apply {
+        isAccessible = true
+    }
+    private val indexMapField = DaryMinHeap::class.java.getDeclaredField("indexMap").apply {
+        isAccessible = true
+    }
 
     @Test
     fun `test empty`() {
         val heap = DaryMinHeap<Int>(4, 0)
-        assertEquals(heap.size(), 0)
-        assertTrue(heap.isEmpty())
+        assertEquals(heap.size, 0)
+        assertTrue(heap.isEmpty)
         assertEquals(heap.poll(), null)
         assertEquals(heap.peek(), null)
+    }
+
+    @Test
+    fun `test invalid degree`() {
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            DaryMinHeap<Int>(d = 1)
+        }
+    }
+
+    @Test
+    fun `test negative initial capacity`() {
+        Assertions.assertThrows(IllegalArgumentException::class.java) {
+            DaryMinHeap<Int>(initialCapacity = -1)
+        }
+    }
+
+    @Test
+    fun `test heap and index map invariants after deterministic operations`() {
+        val heap = DaryMinHeap<Int>(d = 4)
+
+        repeat(60_000) {
+            when (random.nextInt(3)) {
+                0 -> heap.add(random.nextInt(maxSize))
+                1 -> heap.poll()
+                else -> heap.remove(random.nextInt(maxSize))
+            }
+            assertDaryHeapInvariants(heap, d = 4)
+        }
+    }
+
+    @Test
+    fun `test index map releases removed values`() {
+        val heap = DaryMinHeap<Int>()
+
+        repeat(1_000) { value ->
+            heap.add(value)
+            assertTrue(heap.remove(value))
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        val indexMap = indexMapField.get(heap) as Map<Int, Set<Int>>
+        assertTrue(indexMap.isEmpty())
     }
 
     @Test
@@ -34,7 +84,7 @@ internal class DaryMinHeapTest {
 
     @Test
     fun `test heapify`() {
-        for (index in 1 until loops) {
+        for (index in 2 until loops) {
             val array = genRandArray(index)
             val heap = DaryMinHeap<Int>(d = 2, initialCapacity = 50, unsortedItems = array)
 
@@ -50,7 +100,7 @@ internal class DaryMinHeapTest {
 
     @Test
     fun `test priority queue size param`() {
-        for (index in 1 until loops) {
+        for (index in 2 until loops) {
             val randomArray = genRandArray(index)
 
             val heap = DaryMinHeap<Int>(index, randomArray.size)
@@ -68,22 +118,22 @@ internal class DaryMinHeapTest {
     @Test
     fun `test priority random operations`() {
         for (loop in 0 until loops) {
-            var randomInt1 = Math.random()
-            var randomInt2 = Math.random()
+            var randomInt1 = random.nextDouble()
+            var randomInt2 = random.nextDouble()
             if (randomInt2 < randomInt1) {
                 val tmp = randomInt1
                 randomInt1 = randomInt2
-                randomInt2 = randomInt1
+                randomInt2 = tmp
             }
 
             val randomArray = genRandArray(loops)
-            val d = 2 + (Math.random() * 6).toInt()
+            val d = 2 + random.nextInt(6)
             val heap = DaryMinHeap<Int>(d, loops)
             val priorityQueue = PriorityQueue<Int>(loops)
 
             for (loopIndex in 0 until loops) {
                 val randomArray2 = randomArray[loopIndex]
-                val randomInt3 = Math.random()
+                val randomInt3 = random.nextDouble()
                 if (randomInt3 in 0.0..randomInt1) {
                     heap.add(randomArray2)
                     priorityQueue.add(randomArray2)
@@ -109,8 +159,8 @@ internal class DaryMinHeapTest {
         for (str in stringArray)
             heap.add(str)
         heap.clear()
-        assertEquals(heap.size(), 0)
-        assertTrue(heap.isEmpty())
+        assertEquals(heap.size, 0)
+        assertTrue(heap.isEmpty)
     }
 
     @Test
@@ -182,10 +232,10 @@ internal class DaryMinHeapTest {
 
             assertTrue(heap.peek() == priorityQueue.peek())
             assertEquals(heap.remove(elem), priorityQueue.remove(elem))
-            assertTrue(heap.size() == priorityQueue.size)
+            assertTrue(heap.size == priorityQueue.size)
         }
 
-        assertTrue(heap.isEmpty())
+        assertTrue(heap.isEmpty)
     }
 
     @Test
@@ -243,7 +293,7 @@ internal class DaryMinHeapTest {
             }
 
             while (!priorityQueue.isEmpty()) {
-                assertEquals(priorityQueue.size, heap.size())
+                assertEquals(priorityQueue.size, heap.size)
                 assertEquals(priorityQueue.peek(), heap.peek())
                 assertEquals(priorityQueue.contains(priorityQueue.peek()), heap.contains(heap.peek()!!))
 
@@ -255,7 +305,7 @@ internal class DaryMinHeapTest {
                     Assertions.assertNull(heap.peek())
                 else
                     assertEquals(priorityQueue.peek(), heap.peek()!!)
-                assertEquals(priorityQueue.size, heap.size())
+                assertEquals(priorityQueue.size, heap.size)
             }
         }
     }
@@ -273,13 +323,13 @@ internal class DaryMinHeapTest {
                 heap.add(value)
             }
 
-            Collections.shuffle(randNums)
+            Collections.shuffle(randNums, random)
             var index = 0
 
             while (!priorityQueue.isEmpty()) {
                 val removeNum = randNums[index++]
 
-                assertEquals(priorityQueue.size, heap.size())
+                assertEquals(priorityQueue.size, heap.size)
                 assertEquals(priorityQueue.peek(), heap.peek())
                 priorityQueue.remove(removeNum)
                 heap.remove(removeNum)
@@ -287,7 +337,7 @@ internal class DaryMinHeapTest {
                     Assertions.assertNull(heap.peek())
                 else
                     assertEquals(priorityQueue.peek(), heap.peek()!!)
-                assertEquals(priorityQueue.size, heap.size())
+                assertEquals(priorityQueue.size, heap.size)
             }
         }
     }
@@ -309,20 +359,20 @@ internal class DaryMinHeapTest {
                 priorityQueue.add(num)
             }
 
-            Collections.shuffle(nums)
+            Collections.shuffle(nums, random)
 
             for (index in 0 until size / 2) {
 
                 // Sometimes add a new number into the BinaryCompleteHeapUsingDynamicArray
-                if (0.25 < Math.random()) {
-                    val randNum = (Math.random() * 10000).toInt()
+                if (0.25 < random.nextDouble()) {
+                    val randNum = random.nextInt(10_000)
                     priorityQueue.add(randNum)
                     heap.add(randNum)
                 }
 
                 val removeNum = nums[index]
 
-                assertEquals(priorityQueue.size, heap.size())
+                assertEquals(priorityQueue.size, heap.size)
                 assertEquals(priorityQueue.peek(), heap.peek())
 
                 priorityQueue.remove(removeNum)
@@ -332,7 +382,7 @@ internal class DaryMinHeapTest {
                     Assertions.assertNull(heap.peek())
                 else
                     assertEquals(priorityQueue.peek(), heap.peek()!!)
-                assertEquals(priorityQueue.size, heap.size())
+                assertEquals(priorityQueue.size, heap.size)
             }
         }
     }
@@ -340,7 +390,7 @@ internal class DaryMinHeapTest {
     private fun genRandArray(size: Int): Array<Int> {
         val intArray = arrayOfNulls<Int>(size)
         for (index in 0 until size)
-            intArray[index] = (Math.random() * maxSize).toInt()
+            intArray[index] = random.nextInt(maxSize)
         return intArray as Array<Int>
     }
 
@@ -348,7 +398,7 @@ internal class DaryMinHeapTest {
     private fun genRandList(size: Int): List<Int> {
         val list = ArrayList<Int>(size)
         for (index in 0 until size)
-            list.add((Math.random() * maxSize).toInt())
+            list.add(random.nextInt(maxSize))
         return list
     }
 
@@ -357,8 +407,29 @@ internal class DaryMinHeapTest {
         val list = ArrayList<Int>(size)
         for (index in 0 until size)
             list.add(index)
-        Collections.shuffle(list)
+        Collections.shuffle(list, random)
         return list
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun assertDaryHeapInvariants(heap: DaryMinHeap<Int>, d: Int) {
+        val items = itemsField.get(heap) as DynamicArray<Int>
+        val expectedIndexMap = mutableMapOf<Int, MutableSet<Int>>()
+
+        for (parentIndex in 0 until items.size) {
+            val firstChildIndex = d * parentIndex + 1
+            val lastChildExclusive = minOf(items.size, firstChildIndex + d)
+            for (childIndex in firstChildIndex until lastChildExclusive) {
+                assertTrue(
+                    items.get(parentIndex) <= items.get(childIndex),
+                    "Parent at $parentIndex must be <= child at $childIndex"
+                )
+            }
+            expectedIndexMap.getOrPut(items.get(parentIndex)) { mutableSetOf() }.add(parentIndex)
+        }
+
+        val actualIndexMap = indexMapField.get(heap) as Map<Int, Set<Int>>
+        assertEquals(expectedIndexMap, actualIndexMap)
     }
 
 }
