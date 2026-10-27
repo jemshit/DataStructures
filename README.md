@@ -17,7 +17,7 @@ Each implementation favors readable code, clear APIs, and tests that demonstrate
 - [Binary search trees](src/main/kotlin/tree/bst) — ordered trees and reconstruction.
 - [AVL trees](src/main/kotlin/tree/avl) — self-balancing binary search trees.
 - [Heaps](src/main/kotlin/heap) — binary and d-ary min heaps.
-- [Disjoint sets](src/main/kotlin/disjoint_set) — union-find with union by rank and size.
+- [Union-find](src/main/kotlin/unionfind) — path compression with union by rank or size.
 - [Binary indexed trees](src/main/kotlin/binary_index_tree) — efficient prefix-sum queries and updates.
 
 ## Hashing
